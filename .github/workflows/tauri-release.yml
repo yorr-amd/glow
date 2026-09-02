@@ -1,0 +1,174 @@
+name: Tauri Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v0.2.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  TAURI_SIGNING_PRIVATE_KEY_PATH: ${{ runner.workspace }}/private_key.pem
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+
+jobs:
+  build:
+    name: Build Tauri App
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - platform: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            artifact_name: glow-linux-x86_64
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact_name: glow-windows-x86_64
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            artifact_name: glow-macos-x86_64
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            artifact_name: glow-macos-aarch64
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install webview2 --no-progress
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install pkg-config
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Setup Tauri signing key
+        if: env.TAURI_SIGNING_PRIVATE_KEY != ''
+        run: |
+          echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" > ${{ env.TAURI_SIGNING_PRIVATE_KEY_PATH }}
+          chmod 600 ${{ env.TAURI_SIGNING_PRIVATE_KEY_PATH }}
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Cece Yori Glow Tracker ${{ github.ref_name }}'
+          releaseBody: |
+            ## 🌸 Cece Yori Glow Tracker ${{ github.ref_name }}
+            
+            ### What's New
+            - Auto-update support via Tauri Updater
+            - Signed releases for security
+            
+            ### Installation
+            Download the appropriate file for your platform:
+            - **Windows**: `.msi` or `.exe`
+            - **macOS**: `.dmg` (Intel & Apple Silicon)
+            - **Linux**: `.AppImage` or `.deb`
+            
+            ### Verification
+            All releases are signed with our private key. The updater will verify signatures automatically.
+          args: --target ${{ matrix.target }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/**/*
+          retention-days: 7
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find artifacts -type f -name "*.msi" -o -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.sig" | sort
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Cece Yori Glow Tracker ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/*.msi
+            artifacts/*.exe
+            artifacts/*.dmg
+            artifacts/*.AppImage
+            artifacts/*.deb
+            artifacts/*.sig
+          body: |
+            ## 🌸 Cece Yori Glow Tracker ${{ github.ref_name }}
+            
+            ### What's New
+            - Auto-update support via Tauri Updater
+            - Signed releases for security
+            
+            ### Installation
+            Download the appropriate file for your platform:
+            - **Windows**: `.msi` or `.exe`
+            - **macOS**: `.dmg` (Intel & Apple Silicon)
+            - **Linux**: `.AppImage` or `.deb`
+            
+            ### Verification
+            All releases are signed with our private key. The updater will verify signatures automatically.
+          generate_release_notes: true
+
+      - name: Upload signature files separately
+        if: always()
+        run: |
+          # Ensure .sig files are uploaded
+          find artifacts -name "*.sig" | xargs -I {} gh release upload ${{ github.ref_name }} {} --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
