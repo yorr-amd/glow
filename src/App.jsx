@@ -22,7 +22,8 @@ import { getMergedSkincareData, modeConfig } from './data/skincareData';
 import { isExfoliatingDay, getCurrentDateString } from './utils/dateHelper';
 import { initNotificationService, checkAndSendRoutineReminders } from './utils/notificationService';
 import { getSavedUserProfile, saveUserProfile } from './data/userProfile';
-import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home } from 'lucide-react';
+import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe } from 'lucide-react';
+import { useLanguage } from './i18n/LanguageContext';
 
 const STORAGE_KEY = 'ceceyori_checked_items';
 const TONER_STORAGE_KEY = 'ceceyori_toner_enabled';
@@ -58,13 +59,15 @@ function getAutoMode() {
 
 /* ── Live Clock Header Widget ── */
 function LiveClock({ mode }) {
+  const { lang } = useLanguage();
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-  const timeStr = time.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  const dateStr = time.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const locale = lang === 'en' ? 'en-US' : 'id-ID';
+  const timeStr = time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const dateStr = time.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const getDotColor = () => {
     switch(mode) {
@@ -85,6 +88,8 @@ function LiveClock({ mode }) {
 }
 
 export default function App() {
+  const { lang, toggleLang, t, isEn } = useLanguage();
+
   // ── State: Navigation View ('landing' | 'auth' | 'dashboard') ──
   const [viewState, setViewState] = useState(() => {
     return localStorage.getItem(VIEW_STATE_KEY) || 'dashboard';
@@ -322,7 +327,7 @@ export default function App() {
             <button
               onClick={() => setViewState('landing')}
               className="p-2 rounded-xl text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-all"
-              title="Kembali ke Landing Page Beranda"
+              title={t('homeTooltip', 'Kembali ke Landing Page Beranda')}
             >
               <Home size={18} />
             </button>
@@ -342,6 +347,7 @@ export default function App() {
               {MODES.map((m) => {
                 const conf = modeConfig[m];
                 const isActive = mode === m;
+                const modeLabel = t(`modes.${m}.label`, conf.label);
                 return (
                   <button
                     key={m}
@@ -352,23 +358,33 @@ export default function App() {
                         : 'text-slate-500 hover:text-slate-800'
                       }`}>
                     <span>{conf.icon}</span>
-                    <span className="hidden sm:inline">{conf.label}</span>
+                    <span className="hidden sm:inline">{modeLabel}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Right: Quick/Full Toggle + History + Reset + Shelf + Account */}
+          {/* Right: Quick/Full Toggle + Language Switcher + History + Reset + Shelf + Account */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <QuickModeToggle mode={routineMode} onToggle={setRoutineMode} compact />
             
+            {/* 🌐 Language Switcher (ID / EN) */}
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-pink-50/90 border border-pink-200 text-xs font-bold text-[#8B3E53] hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all shadow-2xs"
+              title={t('nav.languageToggleTooltip', 'Ganti Bahasa / Switch Language')}
+            >
+              <Globe size={13} className="text-[#D06885]" />
+              <span className="font-mono text-[11px] font-bold">{lang.toUpperCase()}</span>
+            </button>
+
             {/* Riwayat / History Button */}
             <button
               onClick={() => setShowDailyHistory(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100 transition-colors"
-              title="Lihat Riwayat Skincare Harian">
-              <CalendarIcon size={14} /> <span className="hidden md:inline">Riwayat</span>
+              title={t('nav.historyTooltip', 'Lihat Riwayat Skincare Harian')}>
+              <CalendarIcon size={14} /> <span className="hidden md:inline">{t('nav.history', 'Riwayat')}</span>
             </button>
 
             {/* Reset Button */}
@@ -376,25 +392,25 @@ export default function App() {
               onClick={handleReset}
               className="text-xs font-medium text-pink-400 border border-dashed border-pink-200
                 rounded-full px-3 py-1.5 hover:border-[#D06885] hover:text-[#D06885] transition-all duration-200"
-              title="Reset checklist mode ini">
-              🔄 Reset
+              title={t('nav.resetTooltip', 'Reset checklist')}>
+              🔄 {t('nav.reset', 'Reset')}
             </button>
             
             {/* Product Shelf Button */}
             <button
               onClick={() => setShowProductShelf(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-pink-100 text-pink-700 text-xs font-medium hover:bg-pink-200 transition-colors"
-              title="Kelola Lemari Skincare">
-              <Package size={14} /> <span className="hidden md:inline">Shelf</span>
+              title={t('nav.shelfTooltip', 'Kelola Lemari Skincare')}>
+              <Package size={14} /> <span className="hidden md:inline">{t('nav.shelf', 'Shelf')}</span>
             </button>
 
             {/* Account Profile Button */}
             <button
               onClick={() => setShowAccountModal(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-pink-200 text-xs font-bold text-[#3D1F2A] hover:bg-pink-50 shadow-2xs transition-all"
-              title="Profil & Akun Cece Yori">
+              title={t('profileTooltip', 'Profil & Akun Pengguna')}>
               <span>{userProfile?.avatar || '🌸'}</span>
-              <span className="hidden lg:inline">{userProfile?.name?.split(' ')[0] || 'Cece'}</span>
+              <span className="hidden lg:inline">{userProfile?.name?.split(' ')[0] || 'User'}</span>
             </button>
           </div>
         </div>
@@ -418,21 +434,21 @@ export default function App() {
             {/* Left: Hero text */}
             <div className="max-w-xl">
               <p className="text-white/80 text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2">
-                <span>{currentConfig.icon}</span> Skincare Rutin {currentConfig.label} ({baseRoutine.timeRange})
+                <span>{currentConfig.icon}</span> {t('hero.routineHeader', 'Skincare Rutin')} {t(`modes.${mode}.label`, currentConfig.label)} ({t(`modes.${mode}.timeRange`, baseRoutine.timeRange)})
               </p>
               <h1 className="font-display text-white font-bold leading-tight mb-4"
                 style={{ fontSize: 'clamp(2rem, 3.8vw, 3.2rem)' }}>
-                {currentConfig.heroTitle}
+                {t(`modes.${mode}.heroTitle`, currentConfig.heroTitle)}
               </h1>
               <p className="text-white/85 text-sm md:text-base leading-relaxed mb-6 max-w-md">
-                {currentConfig.heroSubtitle}
+                {t(`modes.${mode}.heroSubtitle`, currentConfig.heroSubtitle)}
               </p>
 
               {/* Status pill */}
               <div className="inline-flex items-center bg-white/25 backdrop-blur-sm
                 rounded-full px-5 py-2.5 border border-white/35 cursor-default select-none shadow-sm">
                 <span className="text-white text-xs font-semibold">
-                  {checkedCount}/{activeItems.length} produk selesai ({Math.round(progress)}%)
+                  {checkedCount}/{activeItems.length} {t('hero.productsDone', 'produk selesai')} ({Math.round(progress)}%)
                 </span>
                 <span className="ml-3 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-xs text-white">
                   ✓
@@ -444,7 +460,7 @@ export default function App() {
             <div className="hidden lg:flex flex-col gap-3 items-end">
               <div className="bg-white/20 backdrop-blur-sm rounded-3xl px-8 py-5 border border-white/30 text-center min-w-[170px] shadow-lg">
                 <p className="font-display text-white text-5xl font-bold">{Math.round(progress)}%</p>
-                <p className="text-white/80 text-xs mt-1 uppercase tracking-wider font-semibold">Progress Rutinitas</p>
+                <p className="text-white/80 text-xs mt-1 uppercase tracking-wider font-semibold">{t('hero.progressTitle', 'Progress Rutinitas')}</p>
                 <div className="w-full bg-white/20 rounded-full h-1.5 mt-3 overflow-hidden">
                   <div className="h-1.5 bg-white rounded-full animate-progress" style={{ width: `${progress}%` }} />
                 </div>
@@ -457,7 +473,7 @@ export default function App() {
                       ${i < Math.ceil((progress / 100) * 5) ? 'text-yellow-300 drop-shadow' : 'text-white/30'}`}>★</span>
                   ))}
                 </div>
-                <p className="text-white/70 text-xs mt-1 text-center font-medium">Rating harian kamu</p>
+                <p className="text-white/70 text-xs mt-1 text-center font-medium">{t('hero.ratingTitle', 'Rating harian kamu')}</p>
               </div>
             </div>
           </div>
@@ -519,7 +535,7 @@ export default function App() {
         {/* Right Main Checklist */}
         <section className="lg:col-span-8">
           <RoutineList
-            title={baseRoutine.title}
+            title={t(`modes.${mode}.routineTitle`, baseRoutine.title)}
             items={activeItems}
             checkedItems={checkedItems[mode] || []}
             onToggle={handleToggle}

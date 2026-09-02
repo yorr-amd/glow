@@ -1,5 +1,6 @@
 import { Check, GripVertical } from 'lucide-react';
 import PAOBadge from './PAOBadge';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const categoryIcons = {
   face: '🧴',
@@ -30,10 +31,13 @@ export default function TaskItem({
   dragHandleProps,
   isDragging,
 }) {
+  const { t, isEn } = useLanguage();
   const icon = categoryIcons[item.category] ?? '✦';
   const badgeColor = categoryColors[item.category] ?? 'bg-gray-50 text-gray-500 border-gray-100';
   const ringColor = categoryRingColors[item.category] ?? 'ring-gray-300';
-  const tip = item.tip || item.desc;
+  const activeDesc = isEn && item.desc_en ? item.desc_en : item.desc;
+  const activeTip = isEn && item.tip_en ? item.tip_en : (item.tip || item.desc);
+  const tip = activeTip;
 
   return (
     <div
@@ -94,7 +98,7 @@ export default function TaskItem({
             </p>
             {item.isEssential && (
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-600 border border-amber-200">
-                Essential
+                {t('routine.essential', 'Essential')}
               </span>
             )}
             {item.isCustom && (
@@ -103,12 +107,12 @@ export default function TaskItem({
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed mb-2">{item.desc}</p>
+          <p className="text-xs text-slate-400 leading-relaxed mb-2">{activeDesc}</p>
 
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-block text-[10px] font-semibold uppercase tracking-wider
               px-2 py-0.5 rounded-full border ${badgeColor}`}>
-              {item.category}
+              {t(`routine.categories.${item.category}`, item.category)}
             </span>
             {item.pao && <PAOBadge pao={item.pao} compact />}
           </div>
@@ -132,7 +136,7 @@ export default function TaskItem({
 
       {isChecked && (
         <div className="absolute top-3 left-3 animate-bounce-in">
-          <span className="text-green-500 text-xs font-semibold">✓ Done</span>
+          <span className="text-green-500 text-xs font-semibold">✓ {t('routine.done', 'Done')}</span>
         </div>
       )}
     </div>

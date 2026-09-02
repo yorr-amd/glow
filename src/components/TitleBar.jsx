@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Minus, Square, Copy, X, Sparkles } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function TitleBar({ mode = 'sore' }) {
+  const { t } = useLanguage();
   const [isMaximized, setIsMaximized] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -96,10 +98,10 @@ export default function TitleBar({ mode = 'sore' }) {
           <Sparkles size={11} />
         </div>
         <span className="font-display font-semibold text-[#8B3E53] tracking-wide text-xs pointer-events-none">
-          Glow ✦ Skincare Tracker
+          {t('appTitle', 'Glow ✦ Skincare Companion')}
         </span>
         <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-pink-50 border border-pink-200 text-[#D06885] pointer-events-none">
-          v1.0.1
+          v1.1.0
         </span>
       </div>
 

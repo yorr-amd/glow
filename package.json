@@ -3,8 +3,8 @@
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "description": "Cece Yori ✦ Skincare Tracker - Personal skincare routine tracker untuk glowing skin setiap hari",
-  "author": "Cece Yori <cece@yori.app>",
+  "description": "Glow ✦ Skincare Companion - Personal skincare routine tracker untuk glowing skin setiap hari",
+  "author": "Glow Team",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

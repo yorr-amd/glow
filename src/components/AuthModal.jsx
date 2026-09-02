@@ -4,7 +4,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart, User, Lock, ChevronLeft } fro
 export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackToLanding, mode = 'sore' }) {
   if (!isOpen) return null;
 
-  const [enteredName, setEnteredName] = useState(userProfile?.name || 'Cece Yori');
+  const [enteredName, setEnteredName] = useState(userProfile?.name || 'Yori');
   const [isNewUserMode, setIsNewUserMode] = useState(false);
 
   const handleSubmit = (e) => {

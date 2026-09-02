@@ -14,9 +14,12 @@ import {
   User,
   Star,
   CheckCircle2,
+  Globe,
 } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) {
+  const { lang, toggleLang, t } = useLanguage();
   const currentConfig = modeConfig[mode] || modeConfig.sore;
 
   return (
@@ -36,11 +39,21 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             </span>
           </div>
 
-          {/* Real-time Status & CTA */}
+          {/* Real-time Status, Language & CTA */}
           <div className="flex items-center gap-3">
+            {/* 🌐 Language Switcher */}
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-white/80 border border-pink-200 text-xs font-bold text-[#8B3E53] hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all shadow-2xs"
+              title={t('nav.languageToggleTooltip', 'Ganti Bahasa / Switch Language')}
+            >
+              <Globe size={13} className="text-[#D06885]" />
+              <span className="font-mono text-[11px] font-bold">{lang.toUpperCase()}</span>
+            </button>
+
             <div className="hidden sm:flex items-center gap-2 bg-white/80 border border-pink-200/70 px-3 py-1.5 rounded-full text-xs font-semibold shadow-2xs">
               <span>{currentConfig.icon}</span>
-              <span className="capitalize">{currentConfig.label} Mode</span>
+              <span className="capitalize">{t(`modes.${mode}.label`, currentConfig.label)} Mode</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
 
@@ -48,7 +61,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
               onClick={onEnterApp}
               className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5"
             >
-              <span>Buka Dashboard</span>
+              <span>{t('landing.enterApp', 'Buka Dashboard')}</span>
               <ArrowRight size={13} />
             </button>
           </div>
@@ -82,7 +95,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
               </h1>
 
               <p className="text-white/90 text-sm sm:text-base md:text-lg leading-relaxed max-w-xl font-normal">
-                {currentConfig.heroSubtitle} Rawat kulitmu secara konsisten dengan panduan skincare berbasis waktu nyata dan teknologi 3D interaktif.
+                {t(`modes.${mode}.heroSubtitle`, currentConfig.heroSubtitle)} {t('landing.tagline', 'Rawat kulitmu secara konsisten dengan panduan skincare berbasis waktu nyata dan teknologi 3D interaktif.')}
               </p>
 
               {/* Action Buttons */}
@@ -92,12 +105,12 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
                   className="px-8 py-3.5 rounded-2xl font-display font-bold text-sm text-[#3D1F2A] bg-white hover:bg-pink-50 shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2"
                 >
                   <Sparkles size={16} className="text-pink-500" />
-                  <span>Mulai Checklist Skincare 🌸</span>
+                  <span>{t('hero.startSkincare', 'Mulai Checklist Skincare 🌸')}</span>
                 </button>
 
                 <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-xs text-white">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Halo, <strong>{userProfile?.name || 'Cece Yori'}</strong></span>
+                  <span>{t('landing.hello', 'Halo')}, <strong>{userProfile?.name || 'Yori'}</strong></span>
                 </div>
               </div>
             </div>
@@ -107,7 +120,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
               <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-3xl p-6 text-white shadow-2xl w-full max-w-sm space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-white/20">
                   <span className="text-xs uppercase tracking-widest font-bold text-white/80">
-                    Kunci Waktu Hari Ini
+                    {t('landing.quickKey', 'Kunci Waktu Hari Ini')}
                   </span>
                   <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-mono">
                     {mode.toUpperCase()}
@@ -117,16 +130,16 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
                 <div className="space-y-3 text-xs">
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/10">
                     <span className="flex items-center gap-2">
-                      <Droplets size={14} className="text-sky-300" /> Produk Utama
+                      <Droplets size={14} className="text-sky-300" /> {t('landing.coreProducts', 'Produk Utama')}
                     </span>
                     <span className="font-semibold">Vaseline, Pond's, Originote</span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/10">
                     <span className="flex items-center gap-2">
-                      <ShieldCheck size={14} className="text-rose-300" /> Toner Merah
+                      <ShieldCheck size={14} className="text-rose-300" /> {t('landing.redToner', 'Toner Merah')}
                     </span>
-                    <span className="font-semibold">Rabu & Sabtu Malam 🔒</span>
+                    <span className="font-semibold">{t('landing.redTonerSchedule', 'Rabu & Sabtu Malam 🔒')}</span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/10">

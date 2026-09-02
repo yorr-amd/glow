@@ -15,6 +15,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TaskItem from './TaskItem';
+import { useLanguage } from '../i18n/LanguageContext';
 
 function SortableTaskItem({ item, isChecked, onToggle, shortcutIndex }) {
   const {
@@ -47,6 +48,7 @@ function SortableTaskItem({ item, isChecked, onToggle, shortcutIndex }) {
 }
 
 export default function RoutineList({ title, items, checkedItems, onToggle, onReorder, routineMode = 'full' }) {
+  const { t, isEn } = useLanguage();
   const doneCount = items.filter(i => checkedItems.includes(i.id)).length;
   const essentialCount = items.filter(i => i.isEssential).length;
 
@@ -71,7 +73,9 @@ export default function RoutineList({ title, items, checkedItems, onToggle, onRe
         <div>
           <h2 className="font-display text-[#3D1F2A] text-2xl font-bold">{title}</h2>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
-            <p className="text-slate-400 text-sm">{doneCount} dari {items.length} produk selesai</p>
+            <p className="text-slate-400 text-sm">
+              {doneCount} {isEn ? 'of' : 'dari'} {items.length} {t('hero.productsDone', 'produk selesai')}
+            </p>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
               routineMode === 'quick'
                 ? 'bg-amber-100 text-amber-700 border-amber-200'
@@ -82,7 +86,7 @@ export default function RoutineList({ title, items, checkedItems, onToggle, onRe
             {routineMode === 'quick' && essentialCount > 0 && (
               <span className="text-[10px] text-slate-400">({essentialCount} essential)</span>
             )}
-            <span className="hidden lg:inline text-[10px] text-slate-400">Geser ⋮⋮ untuk urutan</span>
+            <span className="hidden lg:inline text-[10px] text-slate-400">{t('routine.dragNotice', 'Geser ⋮⋮ untuk urutan')}</span>
           </div>
         </div>
         <div className="flex gap-1.5 items-center">

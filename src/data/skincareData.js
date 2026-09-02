@@ -4,11 +4,11 @@ export const defaultSkincareData = {
     timeRange: "05:00 - 10:59",
     tagline: "Siapkan kulit fresh & terlindungi sebelum beraktivitas! 🌸",
     full: [
-      { id: "p1", name: "Vaseline Soft & Glow", desc: "Body lotion SPF 20 untuk badan", category: "body", pao: "12M", isEssential: true, tip: "Oleskan merata ke tangan dan kaki sebelum berangkat ✨" },
-      { id: "p2", name: "Pond's", desc: "Cuci muka segar bangun tidur", category: "face", pao: "12M", isEssential: true, tip: "Cuci muka dengan air sejuk & busa lembut biar kulit bangun segar ✨" },
-      { id: "p3", name: "Originote Gel", desc: "Moisturizer ringan untuk hidrasi", category: "face", pao: "12M", isEssential: true, tip: "Pakai tipis-tipis biar cepat meresap sebelum beraktivitas" },
-      { id: "p4", name: "Lip Serum", desc: "Nutrisi & dasar bibir lembap", category: "lip", pao: "6M", isEssential: false, tip: "Oles tipis biar bibir tetap kenyal seharian 💋" },
-      { id: "p5", name: "Liptint", desc: "Warna bibir segar untuk hari-hari kamu", category: "decorative", pao: "12M", isEssential: false, tip: "Satu sapuan di tengah bibir, blend ke luar biar natural 💄" }
+      { id: "p1", name: "Vaseline Soft & Glow", desc: "Body lotion SPF 20 untuk badan", desc_en: "SPF 20 body lotion for daily body protection", category: "body", pao: "12M", isEssential: true, tip: "Oleskan merata ke tangan dan kaki sebelum berangkat ✨", tip_en: "Apply evenly to arms and legs before heading out ✨" },
+      { id: "p2", name: "Pond's", desc: "Cuci muka segar bangun tidur", desc_en: "Gentle refreshing face cleanser after waking up", category: "face", pao: "12M", isEssential: true, tip: "Cuci muka dengan air sejuk & busa lembut biar kulit bangun segar ✨", tip_en: "Wash face with cool water & gentle foam for a fresh start ✨" },
+      { id: "p3", name: "Originote Gel", desc: "Moisturizer ringan untuk hidrasi", desc_en: "Lightweight moisturizer for daily hydration", category: "face", pao: "12M", isEssential: true, tip: "Pakai tipis-tipis biar cepat meresap sebelum beraktivitas", tip_en: "Apply a thin layer for fast absorption before daily activities" },
+      { id: "p4", name: "Lip Serum", desc: "Nutrisi & dasar bibir lembap", desc_en: "Nourishing lip serum for soft & supple lips", category: "lip", pao: "6M", isEssential: false, tip: "Oles tipis biar bibir tetap kenyal seharian 💋", tip_en: "Swipe lightly to keep lips plump all day long 💋" },
+      { id: "p5", name: "Liptint", desc: "Warna bibir segar untuk hari-hari kamu", desc_en: "Fresh lip tint for your everyday glow", category: "decorative", pao: "12M", isEssential: false, tip: "Satu sapuan di tengah bibir, blend ke luar biar natural 💄", tip_en: "Dab in the center of lips and blend outward naturally 💄" }
     ],
     quick: ["p1", "p2", "p3"]
   },
@@ -17,12 +17,12 @@ export const defaultSkincareData = {
     timeRange: "11:00 - 14:59",
     tagline: "Segarkan wajah dan touch-up di tengah terik matahari! ☀️",
     full: [
-      { id: "si1", name: "Vaseline Soft & Glow", desc: "Lembapkan kulit tangan di ruangan ber-AC", category: "body", pao: "12M", isEssential: true, tip: "Oleskan di tangan & siku biar nggak kering kena AC kampus ✨" },
-      { id: "si2", name: "Pond's", desc: "Segarkan wajah dari minyak & kantuk", category: "face", pao: "12M", isEssential: true, tip: "Cuci muka atau basuh air bersih saat jam istirahat" },
-      { id: "si3", name: "Originote Gel", desc: "Moisturizer ringan touch-up siang", category: "face", pao: "12M", isEssential: true, tip: "Tipis aja, cukup untuk jaga kelembapan di siang hari" },
-      { id: "si4", name: "Lip Serum", desc: "Jaga kelembapan bibir siang hari", category: "lip", pao: "6M", isEssential: false, tip: "Oles sebelum liptint biar bibir makin lembap 💋" },
-      { id: "si5", name: "Liptint", desc: "Touch-up warna bibir segar", category: "decorative", pao: "12M", isEssential: false, tip: "Bikin bibir fresh lagi sehabis makan siang / ngopi ☕" },
-      { id: "si6", name: "Hanasui", desc: "Setting spray / finishing touch siang", category: "face", pao: "12M", isEssential: false, tip: "Semprot merata dari jarak 20cm biar makeup tahan lama ✨" }
+      { id: "si1", name: "Vaseline Soft & Glow", desc: "Lembapkan kulit tangan di ruangan ber-AC", desc_en: "Hydrates hands and arms in air-conditioned rooms", category: "body", pao: "12M", isEssential: true, tip: "Oleskan di tangan & siku biar nggak kering kena AC kampus ✨", tip_en: "Reapply on hands & elbows to prevent dryness from AC ✨" },
+      { id: "si2", name: "Pond's", desc: "Segarkan wajah dari minyak & kantuk", desc_en: "Refreshes skin from midday oil and tiredness", category: "face", pao: "12M", isEssential: true, tip: "Cuci muka atau basuh air bersih saat jam istirahat", tip_en: "Wash face or splash clean water during midday break" },
+      { id: "si3", name: "Originote Gel", desc: "Moisturizer ringan touch-up siang", desc_en: "Lightweight moisturizer for midday touch-up", category: "face", pao: "12M", isEssential: true, tip: "Tipis aja, cukup untuk jaga kelembapan di siang hari", tip_en: "A thin layer is enough to maintain daytime hydration" },
+      { id: "si4", name: "Lip Serum", desc: "Jaga kelembapan bibir siang hari", desc_en: "Maintains lip hydration throughout the day", category: "lip", pao: "6M", isEssential: false, tip: "Oles sebelum liptint biar bibir makin lembap 💋", tip_en: "Apply before lip tint to keep lips hydrated 💋" },
+      { id: "si5", name: "Liptint", desc: "Touch-up warna bibir segar", desc_en: "Touch-up fresh lip color after lunch", category: "decorative", pao: "12M", isEssential: false, tip: "Bikin bibir fresh lagi sehabis makan siang / ngopi ☕", tip_en: "Freshens up lips after lunch or coffee ☕" },
+      { id: "si6", name: "Hanasui", desc: "Setting spray / finishing touch siang", desc_en: "Midday facial setting spray & finishing mist", category: "face", pao: "12M", isEssential: false, tip: "Semprot merata dari jarak 20cm biar makeup tahan lama ✨", tip_en: "Mist evenly from 20cm away to keep makeup in place ✨" }
     ],
     quick: ["si1", "si2", "si3"]
   },
@@ -31,12 +31,12 @@ export const defaultSkincareData = {
     timeRange: "15:00 - 18:59",
     tagline: "Skincare sebentar sebelum nongkrong biar makin glowing di jalan! 💃",
     full: [
-      { id: "s1", name: "Vaseline Soft & Glow", desc: "Body lotion SPF 20 sebelum keluar", category: "body", pao: "12M", isEssential: true, tip: "Oles merata di tangan, kaki, leher — jangan lupa SPF 20-nya ☀️" },
-      { id: "s2", name: "Pond's", desc: "Cuci muka bersih habis beraktivitas", category: "face", pao: "12M", isEssential: true, tip: "Basahin wajah, busain cleanser, pijat 30 detik, bilas air hangat ✨" },
-      { id: "s3", name: "Originote Gel", desc: "Moisturizer adem sebelum nongkrong", category: "face", pao: "12M", isEssential: true, tip: "Ambil seujung jari, ratakan ke wajah & leher sambil dipijat lembut" },
-      { id: "s4", name: "Lip Serum", desc: "Nutrisi bibir biar enggak kusam", category: "lip", pao: "6M", isEssential: false, tip: "Tetes tipis di bibir, biarkan meresap sebelum liptint" },
-      { id: "s5", name: "Liptint", desc: "Pemanis bibir pas nongkrong", category: "decorative", pao: "12M", isEssential: false, tip: "Satu sapuan di tengah bibir, blend ke luar — jangan terlalu tebal 💄" },
-      { id: "s6", name: "Hanasui", desc: "Setting spray biar makeup tahan seharian", category: "face", pao: "12M", isEssential: false, tip: "Semprot dari jarak 20cm setelah semua skincare/makeup — tahan lama ✨" }
+      { id: "s1", name: "Vaseline Soft & Glow", desc: "Body lotion SPF 20 sebelum keluar", desc_en: "SPF 20 body lotion before heading out", category: "body", pao: "12M", isEssential: true, tip: "Oles merata di tangan, kaki, leher — jangan lupa SPF 20-nya ☀️", tip_en: "Apply evenly to exposed arms, legs, and neck ☀️" },
+      { id: "s2", name: "Pond's", desc: "Cuci muka bersih habis beraktivitas", desc_en: "Cleanses away dust & oil after afternoon activities", category: "face", pao: "12M", isEssential: true, tip: "Basahin wajah, busain cleanser, pijat 30 detik, bilas air hangat ✨", tip_en: "Lather cleanser gently for 30s and rinse with lukewarm water ✨" },
+      { id: "s3", name: "Originote Gel", desc: "Moisturizer adem sebelum nongkrong", desc_en: "Cooling soothing moisturizer before hangout", category: "face", pao: "12M", isEssential: true, tip: "Ambil seujung jari, ratakan ke wajah & leher sambil dipijat lembut", tip_en: "Smooth gently across face and neck with light upward motions" },
+      { id: "s4", name: "Lip Serum", desc: "Nutrisi bibir biar enggak kusam", desc_en: "Lip nourishment to prevent dryness and dullness", category: "lip", pao: "6M", isEssential: false, tip: "Tetes tipis di bibir, biarkan meresap sebelum liptint", tip_en: "Let it absorb for a minute before applying lip color" },
+      { id: "s5", name: "Liptint", desc: "Pemanis bibir pas nongkrong", desc_en: "Charming lip tint accent for evening hangouts", category: "decorative", pao: "12M", isEssential: false, tip: "Satu sapuan di tengah bibir, blend ke luar — jangan terlalu tebal 💄", tip_en: "Apply lightly in the center and blend outwards 💄" },
+      { id: "s6", name: "Hanasui", desc: "Setting spray biar makeup tahan seharian", desc_en: "Setting spray to lock makeup in place all evening", category: "face", pao: "12M", isEssential: false, tip: "Semprot dari jarak 20cm setelah semua skincare/makeup — tahan lama ✨", tip_en: "Spritz from 20cm after skincare/makeup for lasting glow ✨" }
     ],
     quick: ["s1", "s2", "s3"]
   },
@@ -45,12 +45,12 @@ export const defaultSkincareData = {
     timeRange: "19:00 - 04:59",
     tagline: "Setelah capek seharian, saatnya manjain kulit biar besok makin cerah! 💆",
     full: [
-      { id: "m1", name: "Vaseline Soft & Glow", desc: "Kunci kelembapan badan sebelum tidur", category: "body", pao: "12M", isEssential: true, tip: "Kunci kelembapan badan setelah mandi malam ✨" },
-      { id: "m2", name: "Pond's", desc: "Cuci muka bersih sebelum tidur", category: "face", pao: "12M", isEssential: true, tip: "Cuci muka bersih biar pori-pori bebas napas semalaman" },
-      { id: "m3", name: "Originote Gel", desc: "Moisturizer malam untuk hidrasi optimal", category: "face", pao: "12M", isEssential: true, tip: "Lapisan tipis merata, biarkan meresap sebelum tidur" },
-      { id: "m4", name: "Micellar Water", desc: "Angkat sisa makeup & kotoran (pakai kapas)", category: "face", pao: "6M", isEssential: true, tip: "Tuang ke kapas secukupnya, usap lembut tanpa digosok keras ✨" },
-      { id: "m5", name: "Lip Mask", desc: "Masker bibir semalaman biar lembap & kenyal", category: "lip", pao: "12M", isEssential: false, tip: "Oles tebal kayak masker di bibir, biarkan bekerja semalaman 💋" },
-      { id: "m6", name: "Sonik Scents Toner Merah", desc: "Eksfoliasi lipatan (khusus Rabu & Sabtu)", category: "body", pao: "6M", isEssential: false, isConditional: true, tip: "Hanya Rabu & Sabtu: oles di lipatan, diamkan 5–10 menit lalu bilas 🧪" }
+      { id: "m1", name: "Vaseline Soft & Glow", desc: "Kunci kelembapan badan sebelum tidur", desc_en: "Locks in deep body hydration before sleep", category: "body", pao: "12M", isEssential: true, tip: "Kunci kelembapan badan setelah mandi malam ✨", tip_en: "Locks in deep hydration after nighttime shower ✨" },
+      { id: "m2", name: "Pond's", desc: "Cuci muka bersih sebelum tidur", desc_en: "Deep gentle facial cleanser before bedtime", category: "face", pao: "12M", isEssential: true, tip: "Cuci muka bersih biar pori-pori bebas napas semalaman", tip_en: "Wash face thoroughly so pores can breathe freely overnight" },
+      { id: "m3", name: "Originote Gel", desc: "Moisturizer malam untuk hidrasi optimal", desc_en: "Night moisturizer for optimal overnight hydration", category: "face", pao: "12M", isEssential: true, tip: "Lapisan tipis merata, biarkan meresap sebelum tidur", tip_en: "Apply a gentle even layer to restore hydration while sleeping" },
+      { id: "m4", name: "Micellar Water", desc: "Angkat sisa makeup & kotoran (pakai kapas)", desc_en: "Removes makeup & dirt impurities with cotton pad", category: "face", pao: "6M", isEssential: true, tip: "Tuang ke kapas secukupnya, usap lembut tanpa digosok keras ✨", tip_en: "Pour onto cotton pad and wipe gently without harsh rubbing ✨" },
+      { id: "m5", name: "Lip Mask", desc: "Masker bibir semalaman biar lembap & kenyal", desc_en: "Overnight lip mask for ultra soft & plump lips", category: "lip", pao: "12M", isEssential: false, tip: "Oles tebal kayak masker di bibir, biarkan bekerja semalaman 💋", tip_en: "Apply a generous layer like a mask and let it work overnight 💋" },
+      { id: "m6", name: "Sonik Scents Toner Merah", desc: "Eksfoliasi lipatan (khusus Rabu & Sabtu)", desc_en: "Body fold exfoliation (Wednesday & Saturday only)", category: "body", pao: "6M", isEssential: false, isConditional: true, tip: "Hanya Rabu & Sabtu: oles di lipatan, diamkan 5–10 menit lalu bilas 🧪", tip_en: "Wed & Sat only: apply to body folds, leave for 5–10 min, then rinse 🧪" }
     ],
     quick: ["m1", "m2", "m3", "m4"]
   }

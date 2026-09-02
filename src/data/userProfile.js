@@ -4,7 +4,7 @@
 const PROFILE_STORAGE_KEY = 'ceceyori_user_profile';
 
 export const DEFAULT_USER_PROFILE = {
-  name: 'Cece Yori',
+  name: 'Yori',
   avatar: '🌸',
   tagline: 'Mahasiswi MI & Skincare Enthusiast 💖',
   skinType: 'Kombinasi / Sensitif',

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Sparkles, Lock } from 'lucide-react';
 import { isExfoliatingDay } from '../utils/dateHelper';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function TonerToggle({ enabled, onToggle }) {
+  const { t, isEn } = useLanguage();
   const isScheduledToday = isExfoliatingDay(); // true hanya Rabu (3) & Sabtu (6)
 
   const handleToggle = () => {
@@ -27,13 +29,13 @@ export default function TonerToggle({ enabled, onToggle }) {
           <div>
             <div className="flex items-center gap-2">
               <h3 className={`font-semibold text-sm ${isScheduledToday ? 'text-[#3D1F2A]' : 'text-slate-400'}`}>
-                Toner Merah
+                {t('toner.title', 'Toner Merah')}
               </h3>
               <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100">
-                2x / Minggu
+                {isEn ? '2x / Week' : '2x / Minggu'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">Sonik Scents (Eksfoliasi Lipatan)</p>
+            <p className="text-xs text-slate-400 mt-0.5">Sonik Scents ({isEn ? 'Fold Exfoliation' : 'Eksfoliasi Lipatan'})</p>
           </div>
         </div>
 
@@ -43,7 +45,7 @@ export default function TonerToggle({ enabled, onToggle }) {
           type="button"
           aria-label="Toggle Toner Merah"
           disabled={!isScheduledToday}
-          title={!isScheduledToday ? 'Toner hanya bisa diaktifkan pada hari Rabu & Sabtu' : ''}
+          title={!isScheduledToday ? (isEn ? 'Toner can only be activated on Wednesday & Saturday nights' : 'Toner hanya bisa diaktifkan pada hari Rabu & Sabtu') : ''}
           className={`w-12 h-6 rounded-full transition-all duration-300 relative focus:outline-none flex-shrink-0 p-0.5
             ${!isScheduledToday
               ? 'bg-slate-200/60 cursor-not-allowed opacity-60'
@@ -66,8 +68,8 @@ export default function TonerToggle({ enabled, onToggle }) {
           : <Lock size={14} className="text-slate-400" />}
         <span className="font-medium">
           {isScheduledToday
-            ? 'Malam ini JADWAL TONER MERAH (Rabu & Sabtu) ✨'
-            : '🔒 Toner dikunci — Jadwal: Rabu & Sabtu malam saja'}
+            ? (isEn ? 'Tonight is RED TONER NIGHT (Wed & Sat) ✨' : 'Malam ini JADWAL TONER MERAH (Rabu & Sabtu) ✨')
+            : (isEn ? '🔒 Toner locked — Schedule: Wed & Sat night only' : '🔒 Toner dikunci — Jadwal: Rabu & Sabtu malam saja')}
         </span>
       </div>
     </div>

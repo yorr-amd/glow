@@ -1,8 +1,8 @@
 @echo off
-title Push Cece Yori Glow Tracker to GitHub
+title Push Glow Skincare Companion to GitHub
 cls
 echo ====================================================================
-echo    🌸 Cece Yori Glow Tracker - Upload to GitHub Repository
+echo    🌸 Glow ✦ Skincare Companion - Upload to GitHub Repository
 echo    Target: https://github.com/yorr-amd/glow
 echo ====================================================================
 echo.

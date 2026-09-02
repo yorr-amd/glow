@@ -28,7 +28,7 @@ pub fn run() {
             if let Some(icon) = app.default_window_icon() {
                 let _tray = TrayIconBuilder::new()
                     .icon(icon.clone())
-                    .tooltip("Cece Yori ✦ Glow Tracker")
+                    .tooltip("Glow ✦ Skincare Companion")
                     .menu(&menu)
                     .show_menu_on_left_click(false)
                     .on_menu_event(|app, event| match event.id.as_ref() {

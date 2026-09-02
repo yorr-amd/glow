@@ -1,50 +1,173 @@
-# 🌸 Glow ✦ Personal Skincare Routine
+# 🌸 Glow ✦ Personal Skincare Companion
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.0.1-pink?style=for-the-badge&logo=tauri)
+![Version](https://img.shields.io/badge/version-1.1.0-pink?style=for-the-badge&logo=tauri)
 ![Tauri](https://img.shields.io/badge/Tauri_2.0-Rust-orange?style=for-the-badge&logo=rust)
 ![React](https://img.shields.io/badge/React_18-Vite-61DAFB?style=for-the-badge&logo=react)
 ![Three.js](https://img.shields.io/badge/Three.js-3D_Graphics-black?style=for-the-badge&logo=three.js)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS_3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
 ![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=for-the-badge&logo=windows)
+![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)
 
-**A luxury, romantic glassmorphism skincare companion with real-time 3D celestial animations, procedural interactive serum physics, and strict exfoliation safety rules.**
+**A luxury, romantic glassmorphism skincare companion with real-time 3D celestial animations, procedural interactive serum physics, strict exfoliation safety locks, and full bilingual support (English & Indonesian).**
 
-[✨ Download Latest Windows Installer](https://github.com/yorr-amd/glow/releases/latest) • [📖 Dokumentasi & Panduan](#-panduan-fitur) • [🏛️ Arsitektur](#-arsitektur--teknologi)
+<br />
+
+[ 🇬🇧 English Documentation ](#-english-documentation) • [ 🇮🇩 Dokumentasi Bahasa Indonesia ](#-dokumentasi-bahasa-indonesia) • [ 🚀 Quick Start ](#-quick-start--installation)
+
+---
 
 </div>
 
+<br />
+
+# 🇬🇧 English Documentation
+
+## 💖 Overview
+**Glow** is a modern desktop skincare tracker crafted to guide and preserve daily skincare consistency. Built with an elegant **Romantic Glassmorphism** pastel aesthetic (*blush pink, soft rose, deep plum*) and powered by real-time interactive **Three.js 3D** graphics.
+
+Glow accompanies users throughout the day across four dynamic time-based phases—from morning preparation to overnight replenishment.
+
 ---
 
-## 💖 Tentang Aplikasi (Overview)
-
-**Glow** adalah aplikasi desktop modern yang dirancang khusus untuk memandu dan menjaga konsistensi perawatan kulit (*skincare routine*) harian. Dibangun dengan estetika **Romantic Glassmorphism** bernuansa pastel (*blush pink, soft rose, plum*) dan diperkuat dengan grafis interaktif **Three.js 3D**.
-
-Aplikasi ini tidak hanya mencatat rutinitas, tetapi juga mendampingi pengguna secara real-time sepanjang hari dari pagi hingga malam hari.
-
----
-
-## ✨ Fitur Unggulan (Key Features)
+## ✨ Key Features
 
 ### 1. ☀️ 4-Phase Real-time 3D Celestial Atmosphere
-Atmosfer hero banner dan visual langit di aplikasi secara otomatis berganti mengikuti jam nyata perangkat:
-* ☀️ **Pagi (`05:00 - 10:59`)**: Matahari 3D bercahaya emas dengan 12 sinar cincin berputar (*solar rays*) dan percikan flare matahari.
-* 🌤️ **Siang (`11:00 - 14:59`)**: Matahari siang cerah dengan awan 3D volumetrik yang melayang lembut melintasi langit biru.
-* 🌇 **Sore (`15:00 - 18:59`)**: Matahari terbenam (*sunset*) kemerahan yang perlahan turun ke cakrawala dengan gelombang sinar senja *rose-gold*.
-* 🌙 **Malam (`19:00 - 04:59`)**: Bulan Sabit 3D bercahaya lembut (*violet moon*) dengan **120+ bintang 3D berkelap-kelip** dan komet/shooting star melintas berkala.
+The hero visual and atmospheric sky dynamically transition based on real device local time:
+* ☀️ **Morning (`05:00 - 10:59`)**: 3D golden radiant sun with 12 rotating solar burst rays and flare particles.
+* 🌤️ **Afternoon (`11:00 - 14:59`)**: Bright midday sun accompanied by procedural 3D volumetric floating clouds.
+* 🌇 **Evening (`15:00 - 18:59`)**: Rose-gold sunset dipping beneath the horizon with soft twilight gradient waves.
+* 🌙 **Night (`19:00 - 04:59`)**: Glowing violet crescent moon surrounded by **120+ twinkling 3D stars** and periodic shooting stars.
 
 ---
 
 ### 2. 🧴 3D Interactive Skincare Serum Bottle
-* Botol kaca serum 3D prosedural dengan tutup dropper emas mewah yang bisa diputar 360° secara bebas menggunakan mouse / touch drag.
+* Procedural 3D glass serum bottle with a luxury gold dropper cap that can be rotated 360° via mouse/touch drag.
+* Real-time luminous serum liquid and effervescent micro-bubbles adjust dynamically to your completion rate (0% to 100%).
+
+---
+
+### 3. 🔒 Exfoliation Safety Lock (Red Toner - Sonik Scents)
+* Designed to safeguard skin barrier integrity against over-exfoliation.
+* The Red Toner checklist item **only unlocks on Wednesday and Saturday nights**. On all other days, the toggle remains strictly locked (Disabled 🔒).
+
+---
+
+### 4. 🔥 Strict Consecutive Streak Counter
+* Tracks consecutive daily routine completion.
+* A vivid glowing flame remains lit during unbroken consistency. If a day is missed, the flame turns grayscale and the streak resets to encourage fresh accountability.
+
+---
+
+### 5. 🌐 Full Bilingual Support (EN & ID)
+* Instant in-app language switcher (`EN | ID`) directly accessible from the navigation bar.
+* Complete localization covering routine titles, category badges, product guides, usage tips, and calendar modals.
+
+---
+
+### 6. 📅 Skincare Journal & 🧴 Product Shelf
+* **30-Day Skincare Journal**: Consistency metrics, time-session badges, and personalized daily skin condition logs.
+* **Product Shelf**: Virtual cosmetic shelf to add, edit, or customize products with PAO (*Period After Opening*) monitoring.
+
+---
+
+### 7. 🛡️ 100% Offline-First & Private
+* Zero third-party tracking. All profiles, journals, and routine data are saved natively on your machine via local encrypted store.
+
+---
+
+## 🏛️ System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Glow UI (React 18)                       │
+│  - Three.js 3D Celestial Canvas & Interactive Serum Bottle  │
+│  - Tailwind CSS + Glassmorphic Design System Tokens         │
+│  - Context-Driven Bilingual System (i18n: ID & EN)          │
+│  - Lucide Icons & Dynamic Canvas Celebrations               │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ IPC Bridge (Tauri Core)
+┌──────────────────────────────▼──────────────────────────────┐
+│             Tauri 2.0 Desktop Engine (Rust 2021)            │
+│  - Single Instance Lock (@tauri-apps/plugin-single-instance)│
+│  - Native Windows Notifications (@tauri-apps/notification)  │
+│  - Native JSON Persistent Store (@tauri-apps/plugin-store)  │
+│  - Frameless Custom Window Controls & Tray Menu             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Quick Start & Installation
+
+### Prerequisites
+* [Node.js](https://nodejs.org/) (version 18+)
+* [Rust](https://www.rust-lang.org/) & Cargo
+* Microsoft Visual Studio C++ Build Tools (Windows)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yorr-amd/glow.git
+cd glow
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Run Development Mode
+* **Web Browser Mode**:
+  ```bash
+  npm run dev
+  ```
+* **Native Desktop Tauri Mode**:
+  ```bash
+  npm run tauri:dev
+  ```
+
+### 4. Build Windows Executable (.exe)
+```bash
+npm run build
+npx tauri build
+```
+The installer setup will be generated at:
+`src-tauri/target/release/bundle/nsis/Glow_1.1.0_x64-setup.exe`
+
+<br />
+
+---
+
+# 🇮🇩 Dokumentasi Bahasa Indonesia
+
+## 💖 Tentang Aplikasi
+**Glow** adalah aplikasi desktop modern yang dirancang khusus untuk memandu dan menjaga konsistensi perawatan kulit (*skincare routine*) harian. Dibangun dengan estetika **Romantic Glassmorphism** bernuansa pastel (*blush pink, soft rose, plum*) dan diperkuat dengan grafis interaktif **Three.js 3D**.
+
+Glow mendampingi pengguna secara real-time sepanjang hari dari pagi hingga malam hari melalui empat fase waktu yang dinamis.
+
+---
+
+## ✨ Fitur Unggulan
+
+### 1. ☀️ 4-Fase Atmosfer Langit 3D Real-time
+Visual langit pada header berganti secara otomatis mengikuti jam lokal laptop kamu:
+* ☀️ **Pagi (`05:00 - 10:59`)**: Matahari 3D emas bercahaya dengan 12 cincin sinar berputar (*solar rays*) dan percikan flare matahari.
+* 🌤️ **Siang (`11:00 - 14:59`)**: Matahari siang cerah dengan awan 3D volumetrik prosedural yang melayang melintasi langit.
+* 🌇 **Sore (`15:00 - 18:59`)**: Matahari terbenam (*sunset*) kemerahan yang turun ke cakrawala dengan gelombang sinar senja *rose-gold*.
+* 🌙 **Malam (`19:00 - 04:59`)**: Bulan Sabit 3D bercahaya lembut (*violet moon*) dengan **120+ bintang 3D berkelap-kelip** dan komet/shooting star melintas berkala.
+
+---
+
+### 2. 🧴 Botol Serum Skincare 3D Interaktif
+* Botol kaca serum 3D prosedural dengan tutup dropper emas mewah yang bisa diputar 360° secara bebas menggunakan mouse drag.
 * Level cairan serum bercahaya di dalam botol dan gelembung mikro naik secara real-time mengikuti persentase centang rutinitas kamu (0% hingga 100%).
 
 ---
 
-### 3. 🔒 Exfoliation Safety Lock (Toner Merah - Sonik Scents)
-* Fitur keamanan untuk menjaga kesehatan *skin barrier*.
-* Checklist dan toggle Toner Merah **hanya aktif dan dapat dibuka pada hari Rabu & Sabtu malam**. Di luar hari tersebut, fitur terkunci rapat (Disabled 🔒) untuk mencegah *over-exfoliation*.
+### 3. 🔒 Kunci Pengaman Eksfoliasi (Toner Merah - Sonik Scents)
+* Menjaga kesehatan *skin barrier* agar terhindar dari iritasi dan *over-exfoliation*.
+* Checklist dan toggle Toner Merah **hanya aktif dan dapat dibuka pada hari Rabu & Sabtu malam**. Di luar hari tersebut, fitur terkunci rapat (Disabled 🔒).
 
 ---
 
@@ -54,84 +177,24 @@ Atmosfer hero banner dan visual langit di aplikasi secara otomatis berganti meng
 
 ---
 
-### 5. 👑 Profil Pengguna & Sistem Akun (`🌸 Cece`)
-* Kustomisasi avatar emoji aesthetic (`🌸`, `✨`, `🍓`, `🎀`, `👸`, `💄`, `🦄`).
-* Pengaturan tipe kulit (*Kombinasi, Kering, Berminyak, Normal, Acne-Prone*), target kulit (*Glass skin, Tekstur halus*), dan preferensi notifikasi desktop.
+### 5. 🌐 Dukungan 2 Bahasa (Indonesia & Inggris)
+* Tombol pengubah bahasa cepat (`ID | EN`) langsung tersedia di navbar atas.
+* Seluruh deskripsi produk, tips pemakaian, dialog modal, dan navigasi diterjemahkan secara rapi.
 
 ---
 
 ### 6. 📅 Jurnal Riwayat & 🧴 Lemari Skincare (Product Shelf)
-* **Riwayat Skincare**: Kalender 30 hari dengan rekap persentase konsistensi, badge sesi waktu, dan form catatan kondisi kulit harian.
+* **Riwayat Skincare 30 Hari**: Rekap persentase konsistensi, badge sesi waktu, dan form catatan kondisi kulit harian.
 * **Product Shelf**: Rak rias kosmetik virtual untuk menambah, mengedit, menghapus, serta mengatur masa simpan PAO (*Period After Opening*) pada setiap produk skincare.
 
 ---
 
 ### 7. 🛡️ 100% Offline-First & Privasi Terjamin
-* Semua data riwayat, catatan kulit, dan preferensi tersimpan secara privat di penyimpanan lokal native laptop pengguna (tanpa pelacakan eksternal).
+* Semua data riwayat, catatan kulit, dan preferensi tersimpan secara privat di penyimpanan lokal native pengguna.
 
 ---
 
-## 🏛️ Arsitektur & Teknologi (Tech Stack)
+## 📜 Lisensi & Kontributor (License & Contributors)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│             Cece Yori Glow Tracker UI (React 18)           │
-│  - Three.js 3D Celestial Canvas & Interactive Serum Bottle  │
-│  - Tailwind CSS + Glassmorphic Design System Tokens         │
-│  - Lucide Icons & Canvas Confetti Celebrations              │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ IPC Bridge (Tauri Core)
-┌──────────────────────────────▼──────────────────────────────┐
-│             Tauri 2.0 Desktop Engine (Rust 2021)            │
-│  - Single Instance Lock (@tauri-apps/plugin-single-instance)│
-│  - Native Windows Notifications (@tauri-apps/notification)  │
-│  - Native JSON Persistent Store (@tauri-apps/plugin-store)  │
-│  - Windows Vibrancy & Frameless Titlebar Control            │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🚀 Cara Menjalankan & Mengembangkan (Quick Start)
-
-### Prasyarat:
-* [Node.js](https://nodejs.org/) (versi 18 ke atas)
-* [Rust](https://www.rust-lang.org/) & Cargo (untuk kompilasi desktop Tauri)
-* Microsoft Visual Studio C++ Build Tools (Windows)
-
-### 1. Clone Repositori
-```bash
-git clone https://github.com/yorr-amd/glow.git
-cd glow
-```
-
-### 2. Install Dependensi
-```bash
-npm install
-```
-
-### 3. Jalankan Mode Pengembangan (Dev Mode)
-* **Mode Web Preview**:
-  ```bash
-  npm run dev
-  ```
-* **Mode Native Desktop Tauri**:
-  ```bash
-  npx tauri dev
-  ```
-
-### 4. Build Installer Resmi Windows (.exe)
-```bash
-npm run build
-npx tauri build
-```
-File installer installer setup wizard akan otomatis terbuat di:
-`src-tauri/target/release/bundle/nsis/Cece Yori Glow Tracker_1.0.1_x64-setup.exe`
-
----
-
-## 📜 Lisensi & Hak Cipta
-
-Dibuat oleh **YRR AMD** bersama Tim.
-
-*Hak Cipta © 2026 Glow. All Rights Reserved.*
+Dibuat dengan dedikasi dan cinta oleh **YRR AMD / Yori Amanda & Tim**.  
+*Hak Cipta © 2026 Glow. Distributed under the MIT License.*

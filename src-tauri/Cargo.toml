@@ -1,8 +1,8 @@
 [package]
 name = "glow"
 version = "1.0.1"
-description = "Cece Yori Skincare Tracker"
-authors = ["Cece Yori"]
+description = "Glow Skincare Companion"
+authors = ["Glow Team"]
 edition = "2021"
 
 [lib]
