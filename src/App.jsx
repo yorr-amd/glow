@@ -328,7 +328,7 @@ export default function App() {
             </button>
 
             <span className="font-display text-[#3D1F2A] font-bold text-lg tracking-tight select-none flex items-center gap-1.5">
-              <span>Cece Yori</span>
+              <span>Glow</span>
               <span className="text-[#D06885]">✦</span>
             </span>
           </div>

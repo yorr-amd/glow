@@ -1,4 +1,4 @@
-# 🌸 Cece Yori Glow Tracker ✦ Personal Skincare Routine
+# 🌸 Glow ✦ Personal Skincare Routine
 
 <div align="center">
 
@@ -19,7 +19,7 @@
 
 ## 💖 Tentang Aplikasi (Overview)
 
-**Cece Yori Glow Tracker** adalah aplikasi desktop modern yang dirancang khusus untuk memandu dan menjaga konsistensi perawatan kulit (*skincare routine*) harian. Dibangun dengan estetika **Romantic Glassmorphism** bernuansa pastel (*blush pink, soft rose, plum*) dan diperkuat dengan grafis interaktif **Three.js 3D**.
+**Glow** adalah aplikasi desktop modern yang dirancang khusus untuk memandu dan menjaga konsistensi perawatan kulit (*skincare routine*) harian. Dibangun dengan estetika **Romantic Glassmorphism** bernuansa pastel (*blush pink, soft rose, plum*) dan diperkuat dengan grafis interaktif **Three.js 3D**.
 
 Aplikasi ini tidak hanya mencatat rutinitas, tetapi juga mendampingi pengguna secara real-time sepanjang hari dari pagi hingga malam hari.
 
@@ -134,4 +134,4 @@ File installer installer setup wizard akan otomatis terbuat di:
 
 Dibuat oleh **YRR AMD** bersama Tim.
 
-*Hak Cipta © 2026 Yori Glow Tracker. All Rights Reserved.*
+*Hak Cipta © 2026 Glow. All Rights Reserved.*

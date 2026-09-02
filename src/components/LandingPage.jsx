@@ -32,7 +32,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
           <div className="flex items-center gap-2">
             <span className="text-xl">🌸</span>
             <span className="font-display font-bold text-xl text-[#3D1F2A] tracking-tight">
-              Cece Yori <span className="text-[#D06885]">✦</span>
+              Glow <span className="text-[#D06885]">✦</span>
             </span>
           </div>
 
@@ -221,7 +221,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
       ══════════════════════════════════════════ */}
       <footer className="mt-auto border-t border-pink-100/80 bg-white/60 backdrop-blur-md py-6 px-6 text-center text-xs text-slate-400">
         <p>
-          Cece Yori Glow Tracker ✦ Personal Skincare Routine • Crafted with 💖 for Glowing Skin
+          Glow ✦ Personal Skincare Routine • Crafted with 💖 for Glowing Skin
         </p>
       </footer>
 

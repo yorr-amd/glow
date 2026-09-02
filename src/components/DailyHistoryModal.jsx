@@ -127,7 +127,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 className="font-display font-bold text-lg text-[#3D1F2A] flex items-center gap-1.5">
-                Riwayat & Jurnal Glowing Cece 🌸
+                Riwayat & Jurnal Skincare Glow 🌸
               </h2>
               <p className="text-xs text-slate-500">
                 Catatan jejak konsistensi dan progres perawatan kulitmu
