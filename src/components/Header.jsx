@@ -41,7 +41,7 @@ export default function Header({ mode }) {
         {/* Brand name */}
         <div className="flex items-center justify-between mb-6 relative z-10">
           <p className="font-display text-white/90 text-xl italic font-semibold tracking-wide">
-            Cece Yori ✦
+            Glow ✦
           </p>
           <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5 flex items-center gap-2">
             {getModeIcon()}

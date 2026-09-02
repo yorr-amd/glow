@@ -44,7 +44,9 @@ Get-ChildItem "C:\Users\hp\AppData\Local\Temp\*" -Force -Recurse -ErrorAction Si
 
 Write-Host "--- 6. Re-linking Desktop Shortcut ---"
 $ws = New-Object -ComObject WScript.Shell
-$desktopLnk = "C:\Users\hp\OneDrive\Desktop\Cece Yori Glow Tracker.lnk"
+$desktopLnk = "C:\Users\hp\OneDrive\Desktop\Glow.lnk"
+$oldLnk = "C:\Users\hp\OneDrive\Desktop\Cece Yori Glow Tracker.lnk"
+if (Test-Path $oldLnk) { Remove-Item $oldLnk -Force -ErrorAction SilentlyContinue }
 $targetExe = "C:\PROJECT\glow\src-tauri\target\release\glow.exe"
 
 if (Test-Path $targetExe) {
@@ -52,7 +54,7 @@ if (Test-Path $targetExe) {
     $sc.TargetPath = $targetExe
     $sc.WorkingDirectory = "C:\PROJECT\glow\src-tauri\target\release"
     $sc.IconLocation = "C:\PROJECT\glow\src-tauri\icons\icon.ico"
-    $sc.Description = "Cece Yori ✦ Skincare Tracker (v1.0.1)"
+    $sc.Description = "Glow ✦ Skincare Tracker (v1.0.1)"
     $sc.Save()
     Write-Host "Shortcut updated successfully: $desktopLnk"
 } else {

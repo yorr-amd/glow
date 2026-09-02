@@ -25,7 +25,7 @@ export async function notifySkincare(title, body) {
     const granted = await initNotificationService();
     if (granted) {
       sendNotification({
-        title: title || 'Cece Yori ✦ Glow Tracker',
+        title: title || 'Glow ✦ Skincare Tracker',
         body: body,
       });
     }
