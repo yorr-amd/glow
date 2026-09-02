@@ -132,6 +132,6 @@ File installer installer setup wizard akan otomatis terbuat di:
 
 ## 📜 Lisensi & Hak Cipta
 
-Dibuat dengan penuh cinta 💖 dan dedikasi oleh **Cece Yori** (Mahasiswi Manajemen Informatika) bersama Tim.
+Dibuat oleh **YRR AMD** bersama Tim.
 
-*Hak Cipta © 2026 Cece Yori Glow Tracker. All Rights Reserved.*
+*Hak Cipta © 2026 Yori Glow Tracker. All Rights Reserved.*
