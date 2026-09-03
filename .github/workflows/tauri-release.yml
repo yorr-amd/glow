@@ -93,17 +93,23 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'Cece Yori Glow Tracker ${{ github.ref_name }}'
+          releaseName: 'Glow ✦ Skincare Companion ${{ github.ref_name }}'
           releaseBody: |
-            ## 🌸 Cece Yori Glow Tracker ${{ github.ref_name }}
+            ## 🌸 Glow ✦ Skincare Companion ${{ github.ref_name }}
             
-            ### What's New
-            - Auto-update support via Tauri Updater
-            - Signed releases for security
+            ### ✨ What's New
+            - 🌸 Official Rebranding to **Glow ✦ Skincare Companion**
+            - 🌐 Full **Bilingual Localization (English & Bahasa Indonesia)** with instant switch
+            - ☀️ 4-Phase Dynamic 3D Celestial Atmosphere Canvas (Three.js)
+            - 🧴 Interactive 3D Skincare Serum Bottle with real-time level physics
+            - 🔒 Exfoliation Safety Lock (Toner Merah Wednesday & Saturday rule)
+            - 🔥 Strict Consecutive Streak Counter
+            - 📅 30-Day Skincare History Journal & Virtual Product Shelf (PAO tracking)
+            - 🛡️ 100% Offline-First & Private
             
             ### Installation
             Download the appropriate file for your platform:
-            - **Windows**: `.msi` or `.exe`
+            - **Windows**: `.exe` or `.msi`
             - **macOS**: `.dmg` (Intel & Apple Silicon)
             - **Linux**: `.AppImage` or `.deb`
             
@@ -138,7 +144,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          name: Cece Yori Glow Tracker ${{ github.ref_name }}
+          name: Glow ✦ Skincare Companion ${{ github.ref_name }}
           draft: false
           prerelease: false
           files: |
@@ -149,15 +155,21 @@ jobs:
             artifacts/*.deb
             artifacts/*.sig
           body: |
-            ## 🌸 Cece Yori Glow Tracker ${{ github.ref_name }}
+            ## 🌸 Glow ✦ Skincare Companion ${{ github.ref_name }}
             
-            ### What's New
-            - Auto-update support via Tauri Updater
-            - Signed releases for security
+            ### ✨ What's New
+            - 🌸 Official Rebranding to **Glow ✦ Skincare Companion**
+            - 🌐 Full **Bilingual Localization (English & Bahasa Indonesia)** with instant switch
+            - ☀️ 4-Phase Dynamic 3D Celestial Atmosphere Canvas (Three.js)
+            - 🧴 Interactive 3D Skincare Serum Bottle with real-time level physics
+            - 🔒 Exfoliation Safety Lock (Toner Merah Wednesday & Saturday rule)
+            - 🔥 Strict Consecutive Streak Counter
+            - 📅 30-Day Skincare History Journal & Virtual Product Shelf (PAO tracking)
+            - 🛡️ 100% Offline-First & Private
             
             ### Installation
             Download the appropriate file for your platform:
-            - **Windows**: `.msi` or `.exe`
+            - **Windows**: `.exe` or `.msi`
             - **macOS**: `.dmg` (Intel & Apple Silicon)
             - **Linux**: `.AppImage` or `.deb`
             
