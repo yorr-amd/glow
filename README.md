@@ -7,10 +7,19 @@
 ![React](https://img.shields.io/badge/React_18-Vite-61DAFB?style=for-the-badge&logo=react)
 ![Three.js](https://img.shields.io/badge/Three.js-3D_Graphics-black?style=for-the-badge&logo=three.js)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind-CSS_3.4-38B2AC?style=for-the-badge&logo=tailwind-css)
-![Platform](https://img.shields.io/badge/Platform-Windows_x64-blue?style=for-the-badge&logo=windows)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Android-blue?style=for-the-badge&logo=android)
 ![License](https://img.shields.io/badge/License-MIT-purple?style=for-the-badge)
 
 **A luxury, romantic glassmorphism skincare companion with real-time 3D celestial animations, procedural interactive serum physics, strict exfoliation safety locks, and full bilingual support (English & Indonesian).**
+
+<br />
+
+### 📥 Download Official Release (v1.1.0)
+| Platform | Package | Download Link |
+|---|---|---|
+| 📱 **Android** | `Glow-v1.1.0.apk` | [⬇️ **Download Android APK (4.48 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.0/Glow-v1.1.0.apk) |
+| 🪟 **Windows Installer** | `Glow_1.1.0_x64-setup.exe` | [⬇️ **Download Setup (3.57 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.0/Glow_1.1.0_x64-setup.exe) |
+| 🪟 **Windows Portable** | `Glow-v1.1.0-portable.exe` | [⬇️ **Download Portable (14.2 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.0/Glow-v1.1.0-portable.exe) |
 
 <br />
 
