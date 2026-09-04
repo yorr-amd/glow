@@ -15,6 +15,7 @@ import {
   Flame,
   RefreshCw,
   Download,
+  Trash2,
 } from 'lucide-react';
 import { saveUserProfile } from '../data/userProfile';
 import {
@@ -33,7 +34,7 @@ const SKIN_TYPES = [
   'Acne-Prone',
 ];
 
-export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate }) {
+export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData }) {
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings'
@@ -339,14 +340,23 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                 )}
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="w-full py-2.5 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 rounded-xl border border-pink-200 text-slate-600 hover:bg-pink-50 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <LogOut size={14} /> Keluar / Kembali ke Landing Page
+                  <LogOut size={14} /> Keluar / Kembali ke Beranda
                 </button>
+                {onResetAllData && (
+                  <button
+                    type="button"
+                    onClick={onResetAllData}
+                    className="w-full py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Trash2 size={14} /> Kosongkan Semua Data & Reset Akun
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -23,7 +23,7 @@ import { checkForAppUpdates } from './utils/autoUpdateService';
 import { getMergedSkincareData, modeConfig } from './data/skincareData';
 import { isExfoliatingDay, getCurrentDateString } from './utils/dateHelper';
 import { initNotificationService, checkAndSendRoutineReminders } from './utils/notificationService';
-import { getSavedUserProfile, saveUserProfile } from './data/userProfile';
+import { getSavedUserProfile, saveUserProfile, clearUserProfile } from './data/userProfile';
 import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe, CheckCircle2, Flame, RotateCcw, Sparkles } from 'lucide-react';
 import { calculateStreak, STREAK_STORAGE_KEY } from './components/StreakCounter';
 import { useLanguage } from './i18n/LanguageContext';
@@ -62,18 +62,35 @@ function getAutoMode() {
 
 /* ── Live Clock Header Widget ── */
 function LiveClock({ mode }) {
-  const { lang } = useLanguage();
-  const [time, setTime] = useState(new Date());
+  const [timeStr, setTimeStr] = useState('');
+  const [dateStr, setDateStr] = useState('');
+
   useEffect(() => {
-    const t = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(t);
+    const update = () => {
+      const now = new Date();
+      setTimeStr(
+        now.toLocaleTimeString('id-ID', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        })
+      );
+      setDateStr(
+        now.toLocaleDateString('id-ID', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        })
+      );
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
   }, []);
-  const locale = lang === 'en' ? 'en-US' : 'id-ID';
-  const timeStr = time.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  const dateStr = time.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   const getDotColor = () => {
-    switch(mode) {
+    switch (mode) {
       case 'pagi': return 'bg-amber-400';
       case 'siang': return 'bg-sky-400';
       case 'sore': return 'bg-rose-400';
@@ -93,15 +110,20 @@ function LiveClock({ mode }) {
 export default function App() {
   const { lang, toggleLang, t, isEn } = useLanguage();
 
-  // ── State: Navigation View ('landing' | 'auth' | 'dashboard') ──
-  const [viewState, setViewState] = useState(() => {
-    return localStorage.getItem(VIEW_STATE_KEY) || 'dashboard';
-  });
-
   // ── State: User Profile & Modals ──
   const [userProfile, setUserProfile] = useState(() => getSavedUserProfile());
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // ── State: Navigation View ('landing' | 'auth' | 'dashboard') ──
+  // Pengguna baru selalu diarahkan ke Landing Page untuk membuat profil mereka sendiri
+  const [viewState, setViewState] = useState(() => {
+    const saved = getSavedUserProfile();
+    if (!saved || !saved.isRegistered || !saved.name) {
+      return 'landing';
+    }
+    return localStorage.getItem(VIEW_STATE_KEY) || 'landing';
+  });
 
   // ── State: Auto Update ──
   const [availableUpdate, setAvailableUpdate] = useState(null);
@@ -311,12 +333,33 @@ export default function App() {
 
   // ── Handle Navigation & Auth ──
   const handleEnterDashboard = () => {
-    setViewState('dashboard');
+    if (!userProfile || !userProfile.isRegistered || !userProfile.name) {
+      setShowAuthModal(true);
+    } else {
+      setViewState('dashboard');
+      localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
+    }
   };
 
   const handleLogout = () => {
     setShowAccountModal(false);
     setViewState('landing');
+    localStorage.setItem(VIEW_STATE_KEY, 'landing');
+  };
+
+  const handleResetAllData = () => {
+    const confirmMsg = isEn
+      ? 'Are you sure you want to delete all personal profile data and reset all skincare logs? This will clean up the application like a fresh install.'
+      : 'Apakah Anda yakin ingin menghapus semua data profil dan mengosongkan riwayat rutinitas? Tindakan ini akan membuat aplikasi bersih seperti baru dipasang.';
+    if (window.confirm(confirmMsg)) {
+      clearUserProfile();
+      setUserProfile(null);
+      setCheckedItems({});
+      setTodayCompleted(false);
+      setShowAccountModal(false);
+      setViewState('landing');
+      localStorage.setItem(VIEW_STATE_KEY, 'landing');
+    }
   };
 
   const handleLoginSuccess = (updatedProfile) => {
@@ -324,6 +367,7 @@ export default function App() {
     saveUserProfile(updatedProfile);
     setShowAuthModal(false);
     setViewState('dashboard');
+    localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
   };
 
   // ══════════════════════════════════════════════
@@ -454,7 +498,7 @@ export default function App() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-pink-200 text-xs font-bold text-[#3D1F2A] hover:bg-pink-50 shadow-2xs transition-all"
               title={t('profileTooltip', 'Profil & Akun Pengguna')}>
               <span>{userProfile?.avatar || '🌸'}</span>
-              <span>{userProfile?.name?.split(' ')[0] || 'User'}</span>
+              <span>{userProfile?.name?.split(' ')[0] || (isEn ? 'Profile' : 'Profil')}</span>
             </button>
           </div>
         </div>
@@ -740,6 +784,7 @@ export default function App() {
           setAvailableUpdate(update);
           setShowUpdateModal(true);
         }}
+        onResetAllData={handleResetAllData}
       />
 
       {/* Auto Update Notification Modal */}

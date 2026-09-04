@@ -59,9 +59,13 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
 
             <button
               onClick={onEnterApp}
-              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-linear-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <span>{t('landing.enterApp', 'Buka Dashboard')}</span>
+              <span>
+                {userProfile?.name
+                  ? t('landing.enterApp', 'Buka Dashboard')
+                  : (isEn ? 'Get Started' : 'Mulai Sekarang')}
+              </span>
               <ArrowRight size={13} />
             </button>
           </div>
@@ -102,16 +106,26 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
               <div className="pt-2 flex flex-wrap items-center gap-4">
                 <button
                   onClick={onEnterApp}
-                  className="px-8 py-3.5 rounded-2xl font-display font-bold text-sm text-[#3D1F2A] bg-white hover:bg-pink-50 shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2"
+                  className="px-8 py-3.5 rounded-2xl font-display font-bold text-sm text-[#3D1F2A] bg-white hover:bg-pink-50 shadow-lg hover:shadow-xl hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Sparkles size={16} className="text-pink-500" />
-                  <span>{t('hero.startSkincare', 'Mulai Checklist Skincare 🌸')}</span>
+                  <span>
+                    {userProfile?.name
+                      ? t('hero.startSkincare', 'Lanjut Rutinitas Skincare 🌸')
+                      : (isEn ? 'Get Started (Create Profile) 🌸' : 'Mulai Sekarang (Buat Profil) 🌸')}
+                  </span>
                 </button>
 
-                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-xs text-white">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>{t('landing.hello', 'Halo')}, <strong>{userProfile?.name || 'Yori'}</strong></span>
-                </div>
+                {userProfile?.name ? (
+                  <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-xs text-white">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>{t('landing.hello', 'Halo')}, <strong>{userProfile.name}</strong> 🌸</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-xs text-white">
+                    <span>🌸 <strong>Glow</strong> ✦ {isEn ? 'Personal Skincare Companion' : 'Teman Rutinitas Skincare'}</span>
+                  </div>
+                )}
               </div>
             </div>
 
