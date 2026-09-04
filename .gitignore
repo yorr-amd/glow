@@ -53,3 +53,4 @@ android/app/build/
 android/local.properties
 android/.idea/
 android/*.iml
+*.apk
