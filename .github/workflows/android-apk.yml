@@ -27,10 +27,10 @@ jobs:
       - name: 🤖 Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 🟢 Setup Node.js 20
+      - name: 🟢 Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: 📦 Install npm dependencies
@@ -57,12 +57,16 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
 
+      - name: 🏷️ Rename APK for Release
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ./Glow-v1.1.0.apk
+
       - name: 🏷️ Attach APK to Release v1.1.0
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.1.0
           files: |
-            android/app/build/outputs/apk/debug/app-debug.apk
+            ./Glow-v1.1.0.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
