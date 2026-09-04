@@ -19,7 +19,7 @@ import {
 import { useLanguage } from '../i18n/LanguageContext';
 
 export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) {
-  const { lang, toggleLang, t } = useLanguage();
+  const { lang, toggleLang, t, isEn } = useLanguage();
   const currentConfig = modeConfig[mode] || modeConfig.sore;
 
   return (

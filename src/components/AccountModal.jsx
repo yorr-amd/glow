@@ -35,11 +35,16 @@ const SKIN_TYPES = [
 ];
 
 export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData }) {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings'
   const [formData, setFormData] = useState({ ...userProfile });
   const [isSavedToast, setIsSavedToast] = useState(false);
+
+  // Sync formData when userProfile prop changes
+  React.useEffect(() => {
+    if (userProfile) {
+      setFormData({ ...userProfile });
+    }
+  }, [userProfile]);
 
   // Auto update settings state
   const [autoUpdateChecked, setAutoUpdateChecked] = useState(isAutoUpdateEnabled());
@@ -83,6 +88,8 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
     setIsSavedToast(true);
     setTimeout(() => setIsSavedToast(false), 2500);
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">

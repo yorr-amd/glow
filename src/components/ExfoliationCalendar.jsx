@@ -1,4 +1,5 @@
 import { Calendar } from 'lucide-react';
+import { isExfoliatingDay } from '../utils/dateHelper';
 
 const WEEK_DAYS = [
   { label: 'Sen', full: 'Senin', dayIndex: 1, isTonerDay: false },
@@ -12,6 +13,7 @@ const WEEK_DAYS = [
 
 export default function ExfoliationCalendar({ tonerEnabled = false }) {
   const currentDayIndex = new Date().getDay();
+  const isScheduledToday = isExfoliatingDay();
 
   return (
     <div className="backdrop-blur-md bg-white/70 border border-white/40 rounded-2xl p-4 shadow-sm">
@@ -50,9 +52,11 @@ export default function ExfoliationCalendar({ tonerEnabled = false }) {
       </div>
 
       <p className="text-[11px] text-slate-400 mt-3 text-center">
-        {tonerEnabled
-          ? 'Toner Merah aktif di checklist malam ini'
-          : 'Toner Merah sedang OFF — tekan T untuk nyalakan'}
+        {!isScheduledToday
+          ? '🔒 Terkunci — Eksfoliasi hanya aktif Rabu & Sabtu malam'
+          : tonerEnabled
+            ? '✨ Toner Merah aktif di checklist malam ini'
+            : 'Toner Merah sedang OFF — aktifkan saklar untuk membuka'}
       </p>
     </div>
   );

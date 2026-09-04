@@ -1,5 +1,5 @@
 import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
-import { isExfoliatingDay } from './dateHelper';
+import { isExfoliatingDay, getCurrentDateString } from './dateHelper';
 
 /**
  * 🌸 Cece Yori Skincare Notification Service
@@ -40,12 +40,14 @@ const NOTIFIED_KEY = 'ceceyori_notified_today';
 export function checkAndSendRoutineReminders() {
   const now = new Date();
   const hour = now.getHours();
-  const todayDate = now.toISOString().split('T')[0];
+  const todayDate = getCurrentDateString(now);
 
   let notified = {};
   try {
     notified = JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '{}');
-  } catch {}
+  } catch {
+    // Ignore invalid JSON in notification storage
+  }
 
   // If date changed, reset notification flags
   if (notified.date !== todayDate) {

@@ -139,6 +139,10 @@ export default function App() {
     return saved ?? 'full';
   });
 
+  const toggleRoutineMode = () => {
+    setRoutineMode((prev) => (prev === 'quick' ? 'full' : 'quick'));
+  };
+
   // ── State: Toner (Hanya aktif Rabu & Sabtu malam) ──
   const [tonerEnabled, setTonerEnabled] = useState(() => {
     if (!isExfoliatingDay()) return false;
@@ -177,7 +181,9 @@ export default function App() {
     try {
       const history = JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
       setCurrentStreak(calculateStreak(history));
-    } catch {}
+    } catch {
+      // Ignore streak storage read error
+    }
   }, [checkedItems, todayCompleted]);
 
   // ── State: Modals ──
@@ -260,15 +266,23 @@ export default function App() {
 
   // Filter items (Quick vs Full, Toner Merah conditions)
   const getActiveItems = useCallback(() => {
-    let items = routineMode === 'quick' ? baseRoutine.quick : baseRoutine.full;
-    if (mode === 'malam' && tonerEnabled && isExfoliatingDay()) {
-      const hasToner = items.some((i) => i.id === 'toner');
-      if (!hasToner && baseRoutine.tonerItem) {
-        items = [baseRoutine.tonerItem, ...items];
+    // 1. Quick mode vs Full mode item mapping
+    let items = routineMode === 'quick'
+      ? baseRoutine.full.filter((item) => (baseRoutine.quick || []).includes(item.id) || item.isEssential)
+      : [...baseRoutine.full];
+
+    // 2. Strict Toner Merah (Sonik Scents) condition: Rabu & Sabtu malam saja
+    const canUseToner = mode === 'malam' && isExfoliatingDay() && tonerEnabled;
+    if (canUseToner) {
+      const tonerItem = baseRoutine.full.find((i) => i.id === 'm6' || i.id === 'toner' || i.isConditional);
+      if (tonerItem && !items.some((i) => i.id === tonerItem.id)) {
+        items = [...items, tonerItem];
       }
     } else {
-      items = items.filter((i) => i.id !== 'toner');
+      // Di luar jadwal atau toggle OFF: kunci & hilangkan dari checklist aktif
+      items = items.filter((i) => i.id !== 'm6' && i.id !== 'toner' && !i.isConditional);
     }
+
     return sortBySavedOrder(items, customOrder[mode] || []);
   }, [mode, routineMode, tonerEnabled, customOrder, baseRoutine]);
 
@@ -715,18 +729,18 @@ export default function App() {
           FLOATING MOBILE BOTTOM NAVIGATION DOCK
       ══════════════════════════════════════════ */}
       <nav className="lg:hidden fixed bottom-3 inset-x-3 z-40 bg-white/92 backdrop-blur-xl border border-pink-200/80 rounded-2xl shadow-xl px-3 py-2 flex items-center justify-between">
-        {/* Toggle Routine Mode (3-Step / Lengkap) */}
+        {/* Toggle Routine Mode (Quick / Lengkap) */}
         <button
           onClick={toggleRoutineMode}
           className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-bold transition-all ${
-            routineMode === 'express'
+            routineMode === 'quick'
               ? 'text-[#D06885] bg-pink-50'
               : 'text-slate-600 hover:text-pink-600'
           }`}
-          title={routineMode === 'express' ? t('routine.expressMode', 'Mode Cepat') : t('routine.fullMode', 'Mode Lengkap')}
+          title={routineMode === 'quick' ? t('routine.expressMode', 'Mode Cepat') : t('routine.fullMode', 'Mode Lengkap')}
         >
-          <Sparkles size={18} className={routineMode === 'express' ? 'text-[#D06885] fill-pink-300' : 'text-slate-400'} />
-          <span>{routineMode === 'express' ? '3-Step' : (isEn ? 'Full' : 'Lengkap')}</span>
+          <Sparkles size={18} className={routineMode === 'quick' ? 'text-[#D06885] fill-pink-300' : 'text-slate-400'} />
+          <span>{routineMode === 'quick' ? 'Quick' : (isEn ? 'Full' : 'Lengkap')}</span>
         </button>
 
         {/* Lemari / Shelf */}

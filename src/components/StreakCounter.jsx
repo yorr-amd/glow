@@ -25,9 +25,9 @@ export function calculateStreak(history) {
     if (sortedDates[i] === checkDate) {
       streak++;
       // Mundur 1 hari untuk cek berikutnya
-      const d = new Date(checkDate);
-      d.setDate(d.getDate() - 1);
-      checkDate = d.toISOString().split('T')[0];
+      const [y, m, day] = checkDate.split('-').map(Number);
+      const d = new Date(y, m - 1, day - 1);
+      checkDate = getCurrentDateString(d);
     } else {
       // Gap → streak putus
       break;

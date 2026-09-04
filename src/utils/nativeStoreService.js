@@ -37,6 +37,8 @@ export async function getFromNativeStore(key, defaultValue = null) {
       const val = await store.get(key);
       if (val !== undefined && val !== null) return val;
     }
-  } catch (e) {}
+  } catch (_e) {
+    // Native store unavailable or error, fallback to defaultValue
+  }
   return defaultValue;
 }
