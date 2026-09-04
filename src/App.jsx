@@ -18,6 +18,8 @@ import ThreeCelebrationOrb from './components/ThreeCelebrationOrb';
 import LandingPage from './components/LandingPage';
 import AuthModal from './components/AuthModal';
 import AccountModal from './components/AccountModal';
+import AutoUpdateModal from './components/AutoUpdateModal';
+import { checkForAppUpdates } from './utils/autoUpdateService';
 import { getMergedSkincareData, modeConfig } from './data/skincareData';
 import { isExfoliatingDay, getCurrentDateString } from './utils/dateHelper';
 import { initNotificationService, checkAndSendRoutineReminders } from './utils/notificationService';
@@ -100,6 +102,10 @@ export default function App() {
   const [userProfile, setUserProfile] = useState(() => getSavedUserProfile());
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // ── State: Auto Update ──
+  const [availableUpdate, setAvailableUpdate] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   // ── State: Mode (Pagi / Siang / Sore / Malam) ──
   const [mode, setMode] = useState(() => getAutoMode());
@@ -207,6 +213,23 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(customOrder));
   }, [customOrder]);
+
+  // ── Auto Update Check on App Launch ──
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        const update = await checkForAppUpdates({ force: false, silent: true });
+        if (update && update.updateAvailable) {
+          setAvailableUpdate(update);
+          setShowUpdateModal(true);
+        }
+      } catch (e) {
+        // silent fail on launch
+      }
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // ── Get Active Skincare Data ──
   const skincareData = getMergedSkincareData();
@@ -713,6 +736,17 @@ export default function App() {
         onUpdateProfile={(p) => setUserProfile(p)}
         onLogout={handleLogout}
         streak={todayCompleted ? 2 : 1}
+        onShowUpdate={(update) => {
+          setAvailableUpdate(update);
+          setShowUpdateModal(true);
+        }}
+      />
+
+      {/* Auto Update Notification Modal */}
+      <AutoUpdateModal
+        isOpen={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        updateInfo={availableUpdate}
       />
 
       {/* Product Shelf Management Modal */}

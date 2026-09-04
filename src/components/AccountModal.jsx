@@ -13,8 +13,16 @@ import {
   Crown,
   Smile,
   Flame,
+  RefreshCw,
+  Download,
 } from 'lucide-react';
 import { saveUserProfile } from '../data/userProfile';
+import {
+  checkForAppUpdates,
+  isAutoUpdateEnabled,
+  setAutoUpdateEnabled,
+  APP_VERSION,
+} from '../utils/autoUpdateService';
 
 const AVATAR_OPTIONS = ['🌸', '✨', '🍓', '🎀', '👸', '🦄', '💄', '🫧', '🌷', '💎', '🌙', '☀️'];
 const SKIN_TYPES = [
@@ -25,12 +33,43 @@ const SKIN_TYPES = [
   'Acne-Prone',
 ];
 
-export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1 }) {
+export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate }) {
   if (!isOpen) return null;
 
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings'
   const [formData, setFormData] = useState({ ...userProfile });
   const [isSavedToast, setIsSavedToast] = useState(false);
+
+  // Auto update settings state
+  const [autoUpdateChecked, setAutoUpdateChecked] = useState(isAutoUpdateEnabled());
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateStatusMsg, setUpdateStatusMsg] = useState('');
+
+  const handleToggleAutoUpdate = (e) => {
+    const val = e.target.checked;
+    setAutoUpdateChecked(val);
+    setAutoUpdateEnabled(val);
+  };
+
+  const handleManualCheckUpdate = async () => {
+    setIsCheckingUpdate(true);
+    setUpdateStatusMsg('');
+    try {
+      const result = await checkForAppUpdates({ force: true });
+      if (result.updateAvailable) {
+        setUpdateStatusMsg(`Pembaruan tersedia: v${result.latestVersion}! 🚀`);
+        if (onShowUpdate) {
+          onShowUpdate(result);
+        }
+      } else {
+        setUpdateStatusMsg(`Aplikasi sudah versi terbaru (v${APP_VERSION}) 🌸`);
+      }
+    } catch (err) {
+      setUpdateStatusMsg(`Gagal memeriksa pembaruan: ${err.message}`);
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -248,6 +287,56 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                   onChange={(e) => handleChange('soundEffectsEnabled', e.target.checked)}
                   className="w-5 h-5 accent-pink-500 rounded cursor-pointer"
                 />
+              </div>
+
+              {/* Pembaruan Aplikasi & Auto Update Card */}
+              <div className="p-4 bg-linear-to-br from-pink-50/70 to-white rounded-2xl border border-pink-200/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-pink-100 text-[#D06885] flex items-center justify-center font-bold text-xs">
+                      ✦
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-[#3D1F2A] flex items-center gap-1.5">
+                        <span>Pembaruan Aplikasi</span>
+                        <span className="text-[10px] font-mono bg-pink-100 text-[#9B4B62] px-1.5 py-0.5 rounded-md font-bold">
+                          v{APP_VERSION}
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-slate-500">Auto-update APK Android & Desktop</p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoUpdateChecked}
+                      onChange={handleToggleAutoUpdate}
+                      className="w-5 h-5 accent-pink-500 rounded cursor-pointer"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-pink-100">
+                  <p className="text-[11px] text-slate-500">
+                    {autoUpdateChecked ? 'Otomatis cek versi baru saat aplikasi dibuka' : 'Auto update dinonaktifkan'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleManualCheckUpdate}
+                    disabled={isCheckingUpdate}
+                    className="px-3 py-1.5 rounded-xl bg-white border border-pink-200 text-[#D06885] hover:bg-pink-50 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <RefreshCw size={12} className={isCheckingUpdate ? 'animate-spin' : ''} />
+                    <span>{isCheckingUpdate ? 'Memeriksa...' : 'Cek Sekarang'}</span>
+                  </button>
+                </div>
+
+                {updateStatusMsg && (
+                  <p className="text-[11px] font-semibold text-pink-700 bg-pink-50 p-2 rounded-xl border border-pink-100 animate-fade-in">
+                    {updateStatusMsg}
+                  </p>
+                )}
               </div>
 
               <div className="pt-2">

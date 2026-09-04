@@ -86,6 +86,13 @@ The hero visual and atmospheric sky dynamically transition based on real device 
 
 ---
 
+### 8. 🔄 In-App Auto-Update (1-Tap Mobile Update)
+* Automatic version detection via GitHub Releases API on app startup.
+* 1-Tap background APK downloading via Android DownloadManager and instant package installation prompt without manual GitHub browsing.
+* In-app toggle and manual "Check for Updates" button in Settings/Profile.
+
+---
+
 ## 🏛️ System Architecture
 
 ```
@@ -200,6 +207,13 @@ Visual langit pada header berganti secara otomatis mengikuti jam lokal laptop ka
 
 ### 7. 🛡️ 100% Offline-First & Privasi Terjamin
 * Semua data riwayat, catatan kulit, dan preferensi tersimpan secara privat di penyimpanan lokal native pengguna.
+
+---
+
+### 8. 🔄 Pembaruan Otomatis (1-Tap Auto Update)
+* Deteksi versi baru secara otomatis melalui GitHub Releases API setiap aplikasi dibuka.
+* Pengunduhan APK di latar belakang melalui Android DownloadManager dan peluncuran jendela pemasangan otomatis (*1-tap install*) tanpa repot membuka browser atau web GitHub.
+* Toggle pengaturan auto-update dan tombol "Periksa Pembaruan Sekarang" di menu Profil/Pengaturan.
 
 ---
 
