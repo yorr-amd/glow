@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Flame, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { getCurrentDateString, getDateDaysAgo } from '../utils/dateHelper';
 
-const STREAK_STORAGE_KEY = 'ceceyori_streak_history';
+export const STREAK_STORAGE_KEY = 'ceceyori_streak_history';
 
-function calculateStreak(history) {
+export function calculateStreak(history) {
   if (!history || history.length === 0) return 0;
 
   const today = getCurrentDateString();

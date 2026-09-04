@@ -91,23 +91,28 @@ export default function TaskItem({
         </div>
 
         <div className="flex-1 min-w-0 pt-0.5">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <p className={`font-semibold text-sm leading-snug
               ${isChecked ? 'line-through text-slate-400' : 'text-[#3D1F2A]'}`}>
               {item.name}
             </p>
+            {isChecked && (
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-0.5 animate-scale-in">
+                ✓ {t('routine.done', 'Done')}
+              </span>
+            )}
             {item.isEssential && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-600 border border-amber-200">
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200">
                 {t('routine.essential', 'Essential')}
               </span>
             )}
             {item.isCustom && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-600 border border-purple-200">
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 border border-purple-200">
                 Custom
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed mb-2">{activeDesc}</p>
+          <p className="text-xs text-slate-500 leading-relaxed mb-2">{activeDesc}</p>
 
           <div className="flex flex-wrap items-center gap-2">
             <span className={`inline-block text-[10px] font-semibold uppercase tracking-wider
@@ -118,27 +123,21 @@ export default function TaskItem({
           </div>
         </div>
 
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 pt-1">
           <button
             type="button"
             aria-label={isChecked ? 'Uncheck item' : 'Check item'}
-            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center
-              transition-all duration-200
+            className={`w-9 h-9 sm:w-8 sm:h-8 rounded-full border-2 flex items-center justify-center
+              transition-all duration-200 active:scale-90
               ${isChecked
-                ? 'bg-[#D06885] border-[#D06885] shadow-lg shadow-blush-500/30'
-                : 'border-pink-200 bg-white/80 hover:border-[#D06885] hover:bg-blush-50/50 backdrop-blur-sm'
+                ? 'bg-[#D06885] border-[#D06885] shadow-md shadow-blush-500/30'
+                : 'border-pink-200 bg-white/90 hover:border-[#D06885] hover:bg-blush-50/50 backdrop-blur-sm'
               }`}
           >
-            {isChecked && <Check size={14} className="text-white" strokeWidth={3} />}
+            {isChecked && <Check size={16} className="text-white" strokeWidth={3} />}
           </button>
         </div>
       </div>
-
-      {isChecked && (
-        <div className="absolute top-3 left-3 animate-bounce-in">
-          <span className="text-green-500 text-xs font-semibold">✓ {t('routine.done', 'Done')}</span>
-        </div>
-      )}
     </div>
   );
 }

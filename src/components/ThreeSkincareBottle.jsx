@@ -188,7 +188,7 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
     const sparkleRing = new THREE.Points(ringGeom, ringMat);
     bottleGroup.add(sparkleRing);
 
-    // ── Mouse Drag Rotation Controls ──
+    // ── Mouse & Touch Drag Rotation Controls ──
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
 
@@ -212,10 +212,37 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
       isDragging = false;
     };
 
+    // Mobile touch events
+    const onTouchStart = (e) => {
+      if (e.touches && e.touches.length === 1) {
+        isDragging = true;
+        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+    };
+
+    const onTouchMove = (e) => {
+      if (!isDragging || !e.touches || e.touches.length !== 1) return;
+      const deltaX = e.touches[0].clientX - previousMousePosition.x;
+      const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+      bottleGroup.rotation.y += deltaX * 0.018;
+      bottleGroup.rotation.x += deltaY * 0.012;
+
+      previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+
+    const onTouchEnd = () => {
+      isDragging = false;
+    };
+
     const domEl = renderer.domElement;
     domEl.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+
+    domEl.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd);
 
     // Animation Loop
     let animationFrameId;
@@ -253,6 +280,10 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
 
+      domEl.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
       }
@@ -284,7 +315,7 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
           <Sparkles size={12} className="text-pink-500 animate-pulse" /> {palette.label}
         </span>
         <span className="text-[9px] text-slate-400 font-medium flex items-center gap-0.5 bg-white/70 px-2 py-0.5 rounded-full border border-pink-100">
-          <RotateCw size={10} /> Drag 360°
+          <RotateCw size={10} /> Drag / Touch 360°
         </span>
       </div>
 

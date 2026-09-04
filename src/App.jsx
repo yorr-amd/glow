@@ -22,7 +22,8 @@ import { getMergedSkincareData, modeConfig } from './data/skincareData';
 import { isExfoliatingDay, getCurrentDateString } from './utils/dateHelper';
 import { initNotificationService, checkAndSendRoutineReminders } from './utils/notificationService';
 import { getSavedUserProfile, saveUserProfile } from './data/userProfile';
-import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe } from 'lucide-react';
+import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe, CheckCircle2, Flame, RotateCcw, Sparkles } from 'lucide-react';
+import { calculateStreak, STREAK_STORAGE_KEY } from './components/StreakCounter';
 import { useLanguage } from './i18n/LanguageContext';
 
 const STORAGE_KEY = 'ceceyori_checked_items';
@@ -133,6 +134,23 @@ export default function App() {
     const saved = localStorage.getItem(COMPLETION_STORAGE_KEY);
     return saved === today;
   });
+
+  // ── State: Live Streak Calculation ──
+  const [currentStreak, setCurrentStreak] = useState(() => {
+    try {
+      const history = JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
+      return calculateStreak(history);
+    } catch {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const history = JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
+      setCurrentStreak(calculateStreak(history));
+    } catch {}
+  }, [checkedItems, todayCompleted]);
 
   // ── State: Modals ──
   const [showProductShelf, setShowProductShelf] = useState(false);
@@ -319,7 +337,10 @@ export default function App() {
       {/* ══════════════════════════════════════════
           TOP NAVIGATION BAR
       ══════════════════════════════════════════ */}
-      <nav className="sticky top-0 z-40 bg-white/70 backdrop-blur-md border-b border-pink-100/80 px-4 md:px-8 py-3 transition-all">
+      {/* ══════════════════════════════════════════
+          TOP NAVIGATION BAR (DESKTOP)
+      ══════════════════════════════════════════ */}
+      <nav className="hidden lg:block sticky top-0 z-40 bg-white/75 backdrop-blur-md border-b border-pink-100/80 px-8 py-3 transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           
           {/* Left: Brand Logo + Landing Page Button */}
@@ -358,7 +379,7 @@ export default function App() {
                         : 'text-slate-500 hover:text-slate-800'
                       }`}>
                     <span>{conf.icon}</span>
-                    <span className="hidden sm:inline">{modeLabel}</span>
+                    <span>{modeLabel}</span>
                   </button>
                 );
               })}
@@ -384,7 +405,7 @@ export default function App() {
               onClick={() => setShowDailyHistory(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold hover:bg-rose-100 transition-colors"
               title={t('nav.historyTooltip', 'Lihat Riwayat Skincare Harian')}>
-              <CalendarIcon size={14} /> <span className="hidden md:inline">{t('nav.history', 'Riwayat')}</span>
+              <CalendarIcon size={14} /> <span>{t('nav.history', 'Riwayat')}</span>
             </button>
 
             {/* Reset Button */}
@@ -401,7 +422,7 @@ export default function App() {
               onClick={() => setShowProductShelf(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-pink-100 text-pink-700 text-xs font-medium hover:bg-pink-200 transition-colors"
               title={t('nav.shelfTooltip', 'Kelola Lemari Skincare')}>
-              <Package size={14} /> <span className="hidden md:inline">{t('nav.shelf', 'Shelf')}</span>
+              <Package size={14} /> <span>{t('nav.shelf', 'Shelf')}</span>
             </button>
 
             {/* Account Profile Button */}
@@ -410,11 +431,86 @@ export default function App() {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-pink-200 text-xs font-bold text-[#3D1F2A] hover:bg-pink-50 shadow-2xs transition-all"
               title={t('profileTooltip', 'Profil & Akun Pengguna')}>
               <span>{userProfile?.avatar || '🌸'}</span>
-              <span className="hidden lg:inline">{userProfile?.name?.split(' ')[0] || 'User'}</span>
+              <span>{userProfile?.name?.split(' ')[0] || 'User'}</span>
             </button>
           </div>
         </div>
       </nav>
+
+      {/* ══════════════════════════════════════════
+          TOP NAVIGATION BAR & MODE TABS (MOBILE)
+      ══════════════════════════════════════════ */}
+      <header className="lg:hidden sticky top-0 z-40 bg-white/85 backdrop-blur-lg border-b border-pink-100/90 shadow-2xs transition-all">
+        {/* Top Mobile Bar: Brand, Streak Flame, Language & Profile */}
+        <div className="px-4 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewState('landing')}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-all"
+              title={t('homeTooltip', 'Kembali ke Beranda')}
+            >
+              <Home size={17} />
+            </button>
+            <span className="font-display text-[#3D1F2A] font-bold text-base tracking-tight flex items-center gap-1">
+              <span>Glow</span>
+              <span className="text-[#D06885]">✦</span>
+            </span>
+          </div>
+
+          {/* Center: Streak Pill Badge */}
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shadow-2xs border ${
+            currentStreak > 0
+              ? 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse'
+              : 'bg-slate-100 text-slate-500 border-slate-200'
+          }`}>
+            <Flame size={13} className={currentStreak > 0 ? 'text-amber-500 fill-amber-400' : 'text-slate-400'} />
+            <span className="font-mono">{currentStreak}</span>
+            <span className="text-[10px] uppercase font-semibold">{isEn ? 'Days' : 'Hari'}</span>
+          </div>
+
+          {/* Right: Language toggle & Profile */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-pink-50 border border-pink-200 text-xs font-bold text-[#8B3E53] active:scale-95 transition-all shadow-2xs"
+            >
+              <Globe size={12} className="text-[#D06885]" />
+              <span className="font-mono text-[10px]">{lang.toUpperCase()}</span>
+            </button>
+
+            <button
+              onClick={() => setShowAccountModal(true)}
+              className="w-8 h-8 rounded-full bg-white border border-pink-200 flex items-center justify-center text-sm shadow-2xs active:scale-95 transition-all"
+              title={t('profileTooltip', 'Profil Pengguna')}
+            >
+              {userProfile?.avatar || '🌸'}
+            </button>
+          </div>
+        </div>
+
+        {/* Second Row: 4 Mode Horizontal Pill Switcher */}
+        <div className="px-3 pb-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+          {MODES.map((m) => {
+            const conf = modeConfig[m];
+            const isActive = mode === m;
+            const modeLabel = t(`modes.${m}.label`, conf.label);
+            return (
+              <button
+                key={m}
+                onClick={() => { setManualMode(true); setMode(m); }}
+                className={`flex-1 min-w-[76px] py-1.5 px-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap active:scale-95
+                  ${isActive
+                    ? `${conf.badgeColor} shadow-xs font-bold ring-1 ring-pink-300/60`
+                    : 'bg-pink-50/50 text-slate-500 border border-pink-100/60'
+                  }`}
+              >
+                <span className="text-xs">{conf.icon}</span>
+                <span className="text-[11px]">{modeLabel}</span>
+              </button>
+            );
+          })}
+        </div>
+      </header>
 
       {/* ══════════════════════════════════════════
           HERO BANNER
@@ -429,28 +525,27 @@ export default function App() {
         <div className="absolute -bottom-16 -left-16 w-72 h-72 rounded-full bg-white/10 blur-xl pointer-events-none" />
         <div className="absolute top-8 right-1/3 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
 
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-14 relative z-10">
-          <div className="flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-7 sm:py-10 lg:py-14 relative z-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Left: Hero text */}
             <div className="max-w-xl">
-              <p className="text-white/80 text-xs uppercase tracking-[0.25em] font-semibold mb-3 flex items-center gap-2">
+              <p className="text-white/80 text-xs uppercase tracking-[0.25em] font-semibold mb-2 sm:mb-3 flex items-center gap-2">
                 <span>{currentConfig.icon}</span> {t('hero.routineHeader', 'Skincare Rutin')} {t(`modes.${mode}.label`, currentConfig.label)} ({t(`modes.${mode}.timeRange`, baseRoutine.timeRange)})
               </p>
-              <h1 className="font-display text-white font-bold leading-tight mb-4"
-                style={{ fontSize: 'clamp(2rem, 3.8vw, 3.2rem)' }}>
+              <h1 className="font-display text-white font-bold leading-tight mb-3 sm:mb-4 text-3xl sm:text-4xl lg:text-5xl">
                 {t(`modes.${mode}.heroTitle`, currentConfig.heroTitle)}
               </h1>
-              <p className="text-white/85 text-sm md:text-base leading-relaxed mb-6 max-w-md">
+              <p className="text-white/85 text-xs sm:text-sm md:text-base leading-relaxed mb-4 sm:mb-6 max-w-md">
                 {t(`modes.${mode}.heroSubtitle`, currentConfig.heroSubtitle)}
               </p>
 
               {/* Status pill */}
               <div className="inline-flex items-center bg-white/25 backdrop-blur-sm
-                rounded-full px-5 py-2.5 border border-white/35 cursor-default select-none shadow-sm">
+                rounded-full px-4 sm:px-5 py-2 sm:py-2.5 border border-white/35 cursor-default select-none shadow-sm">
                 <span className="text-white text-xs font-semibold">
                   {checkedCount}/{activeItems.length} {t('hero.productsDone', 'produk selesai')} ({Math.round(progress)}%)
                 </span>
-                <span className="ml-3 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-xs text-white">
+                <span className="ml-2.5 sm:ml-3 w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-xs text-white">
                   ✓
                 </span>
               </div>
@@ -483,11 +578,27 @@ export default function App() {
       {/* ══════════════════════════════════════════
           MAIN CONTENT
       ══════════════════════════════════════════ */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-32 lg:pb-12">
         
-        {/* Left Sidebar */}
-        <aside className="lg:col-span-4 flex flex-col gap-5 lg:sticky lg:top-20 h-fit">
-          <ClockWidget mode={mode} />
+        {/* Main Checklist: Displayed FIRST on mobile (order-1 lg:order-2) */}
+        <section className="order-1 lg:order-2 lg:col-span-8">
+          <RoutineList
+            title={t(`modes.${mode}.routineTitle`, baseRoutine.title)}
+            items={activeItems}
+            checkedItems={checkedItems[mode] || []}
+            onToggle={handleToggle}
+            onReorder={handleReorder}
+            mode={mode}
+            routineMode={routineMode}
+          />
+        </section>
+
+        {/* Sidebar Widgets: Displayed SECOND on mobile (order-2 lg:order-1) */}
+        <aside className="order-2 lg:order-1 lg:col-span-4 flex flex-col gap-5 lg:sticky lg:top-20 h-fit">
+          {/* Redundant clock hidden on mobile, shown on desktop */}
+          <div className="hidden lg:block">
+            <ClockWidget mode={mode} />
+          </div>
           
           <ProgressBar
             variant="sidebar"
@@ -531,20 +642,65 @@ export default function App() {
             onComplete={handleCompleteDay}
           />
         </aside>
-
-        {/* Right Main Checklist */}
-        <section className="lg:col-span-8">
-          <RoutineList
-            title={t(`modes.${mode}.routineTitle`, baseRoutine.title)}
-            items={activeItems}
-            checkedItems={checkedItems[mode] || []}
-            onToggle={handleToggle}
-            onReorder={handleReorder}
-            mode={mode}
-            routineMode={routineMode}
-          />
-        </section>
       </main>
+
+      {/* ══════════════════════════════════════════
+          FLOATING MOBILE BOTTOM NAVIGATION DOCK
+      ══════════════════════════════════════════ */}
+      <nav className="lg:hidden fixed bottom-3 inset-x-3 z-40 bg-white/92 backdrop-blur-xl border border-pink-200/80 rounded-2xl shadow-xl px-3 py-2 flex items-center justify-between">
+        {/* Toggle Routine Mode (3-Step / Lengkap) */}
+        <button
+          onClick={toggleRoutineMode}
+          className={`flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-bold transition-all ${
+            routineMode === 'express'
+              ? 'text-[#D06885] bg-pink-50'
+              : 'text-slate-600 hover:text-pink-600'
+          }`}
+          title={routineMode === 'express' ? t('routine.expressMode', 'Mode Cepat') : t('routine.fullMode', 'Mode Lengkap')}
+        >
+          <Sparkles size={18} className={routineMode === 'express' ? 'text-[#D06885] fill-pink-300' : 'text-slate-400'} />
+          <span>{routineMode === 'express' ? '3-Step' : (isEn ? 'Full' : 'Lengkap')}</span>
+        </button>
+
+        {/* Lemari / Shelf */}
+        <button
+          onClick={() => setShowProductShelf(true)}
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-bold text-slate-600 hover:text-pink-600 active:scale-95 transition-all"
+        >
+          <Package size={18} className="text-slate-400" />
+          <span>{t('nav.shelf', 'Shelf')}</span>
+        </button>
+
+        {/* Quick Check/Complete Floating Button (Smooth Scroll to Top) */}
+        <button
+          onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="relative -top-5 w-12 h-12 rounded-full bg-linear-to-tr from-[#D06885] to-[#E8829D] text-white shadow-lg shadow-pink-500/30 flex items-center justify-center border-2 border-white active:scale-95 transition-all cursor-pointer"
+          title={t('scrollToTop', 'Ke Atas')}
+        >
+          <CheckCircle2 size={24} />
+        </button>
+
+        {/* Riwayat / History */}
+        <button
+          onClick={() => setShowDailyHistory(true)}
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-bold text-slate-600 hover:text-pink-600 active:scale-95 transition-all"
+        >
+          <CalendarIcon size={18} className="text-slate-400" />
+          <span>{t('nav.history', 'Riwayat')}</span>
+        </button>
+
+        {/* Reset Hari Ini */}
+        <button
+          onClick={handleReset}
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-[10px] font-bold text-slate-600 hover:text-rose-600 active:scale-95 transition-all"
+          title={t('nav.reset', 'Reset')}
+        >
+          <RotateCcw size={18} className="text-slate-400" />
+          <span>{t('nav.reset', 'Reset')}</span>
+        </button>
+      </nav>
 
       {/* ══════════════════════════════════════════
           MODALS
