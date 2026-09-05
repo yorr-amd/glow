@@ -1,7 +1,7 @@
 {
   "name": "glow",
   "private": true,
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "description": "Glow ✦ Skincare Companion - Personal skincare routine tracker untuk glowing skin setiap hari",
   "author": "Glow Team",
@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
+    "clean": "node scripts/clean-cache.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
