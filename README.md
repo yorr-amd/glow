@@ -219,5 +219,5 @@ Visual langit pada header berganti secara otomatis mengikuti jam lokal laptop ka
 
 ## 📜 Lisensi & Kontributor (License & Contributors)
 
-Dibuat dengan dedikasi dan cinta oleh **YRR AMD / Yori Amanda & Tim**.  
+Dibuat dengan dedikasi dan cinta oleh **YRR AMD**.  
 *Hak Cipta © 2026 Glow. Distributed under the MIT License.*
