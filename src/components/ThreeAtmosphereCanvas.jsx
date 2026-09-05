@@ -16,6 +16,7 @@ export default function ThreeAtmosphereCanvas({ mode = 'sore' }) {
     const container = containerRef.current;
     if (!container) return;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const width = container.clientWidth || window.innerWidth;
     const height = container.clientHeight || 340;
 
@@ -24,10 +25,10 @@ export default function ThreeAtmosphereCanvas({ mode = 'sore' }) {
     const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
     camera.position.z = 40;
 
-    // 2. WebGL Renderer
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
+    // 2. WebGL Renderer (Optimized for mobile battery & smoothness)
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !isMobile, powerPreference: 'low-power' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     const masterGroup = new THREE.Group();
@@ -336,8 +337,8 @@ export default function ThreeAtmosphereCanvas({ mode = 'sore' }) {
       const moonHalo = new THREE.Mesh(moonHaloGeom, moonHaloMat);
       moonGroup.add(moonHalo);
 
-      // 2. 120+ Twinkling 3D Starfield
-      const starCount = 120;
+      // 2. Twinkling 3D Starfield (Adapted for mobile performance)
+      const starCount = isMobile ? 45 : 120;
       const starPositions = new Float32Array(starCount * 3);
       const starColors = new Float32Array(starCount * 3);
       const colWhite = new THREE.Color(0xFFFFFF);
@@ -431,20 +432,34 @@ export default function ThreeAtmosphereCanvas({ mode = 'sore' }) {
 
     window.addEventListener('resize', handleResize);
 
-    // 6. Main Animation Loop
+    // 6. Viewport Visibility Observer (Pause offscreen rendering to save mobile GPU)
+    let isVisible = true;
+    let observer = null;
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      observer = new window.IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+      }, { threshold: 0.05 });
+      observer.observe(container);
+    }
+
+    // 7. Main Animation Loop
     let animId;
     let clock = new THREE.Clock();
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
+      if (!isVisible) return; // Skip render when out of view!
+
       const elapsed = clock.getElapsedTime();
 
-      // Smooth mouse parallax
-      mouse.x += (mouse.targetX - mouse.x) * 0.05;
-      mouse.y += (mouse.targetY - mouse.y) * 0.05;
+      // Smooth mouse parallax (desktop only)
+      if (!isMobile) {
+        mouse.x += (mouse.targetX - mouse.x) * 0.05;
+        mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-      masterGroup.rotation.y = mouse.x * 0.12;
-      masterGroup.rotation.x = -mouse.y * 0.08;
+        masterGroup.rotation.y = mouse.x * 0.12;
+        masterGroup.rotation.x = -mouse.y * 0.08;
+      }
 
       // Run dynamic updates
       animatedItems.forEach((item) => item.update(elapsed));
@@ -456,6 +471,7 @@ export default function ThreeAtmosphereCanvas({ mode = 'sore' }) {
 
     return () => {
       cancelAnimationFrame(animId);
+      if (observer) observer.disconnect();
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('resize', handleResize);
 

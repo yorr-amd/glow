@@ -7,7 +7,7 @@ const STORAGE_VIBES_KEY = 'ceceyori_glow_vibes_count';
 
 // 🔮 Fun Affirmations & Beauty Fortunes
 const BEAUTY_FORTUNES = [
-  'Aura kecantikan Cece hari ini 1000% dewy & mempesona! 💖',
+  'Aura glowing kamu hari ini 1000% dewy & mempesona! 💖',
   'Pori-pori wajahmu berterima kasih karena dirawat dengan penuh cinta 🌸',
   'Level glowing kamu sudah melampaui standar bidadari! ✨',
   'Kulit kenyal, sehat, dan bebas jerawat siap menemanimu besok 💆‍♀️',
@@ -15,20 +15,20 @@ const BEAUTY_FORTUNES = [
   'Energi positif dan skincare rutin bikin kamu awet muda selamanya! 🍓',
   'Skincare bukan sekadar rutinitas, tapi bentuk self-love terbaikmu 🥰',
   'Aroma serum dan ketelatenanmu membuahkan glass skin sempurna! 💎',
-  'Kecantikan alami Cece makin bersinar terang benderang 🌟',
+  'Kecantikan alami kamu makin bersinar terang benderang 🌟',
   'Selamat! Kamu resmi menyandang gelar Ratu Skincare No. 1 🦄',
 ];
 
-export default function ThreeCelebrationOrb({ streak = 1, mode = 'sore' }) {
+export default function ThreeCelebrationOrb({ streak = 0, mode = 'sore' }) {
   const mountRef = useRef(null);
   const orbMeshRef = useRef(null);
   const wireMeshRef = useRef(null);
   const burstParticlesRef = useRef([]);
 
-  // Load saved vibes from localStorage (Default 334 if already clicked!)
+  // Load saved vibes from localStorage (Default 0 for clean fresh users!)
   const [vibes, setVibes] = useState(() => {
     const saved = localStorage.getItem(STORAGE_VIBES_KEY);
-    return saved !== null ? parseInt(saved, 10) : 334;
+    return saved !== null ? parseInt(saved, 10) : 0;
   });
 
   const [currentFortune, setCurrentFortune] = useState(BEAUTY_FORTUNES[0]);
@@ -67,6 +67,7 @@ export default function ThreeCelebrationOrb({ streak = 1, mode = 'sore' }) {
     const container = mountRef.current;
     if (!container) return;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const width = container.clientWidth || 170;
     const height = 155;
 
@@ -74,9 +75,9 @@ export default function ThreeCelebrationOrb({ streak = 1, mode = 'sore' }) {
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.z = 6.2;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !isMobile, powerPreference: 'low-power' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     // Lights
@@ -146,11 +147,23 @@ export default function ThreeCelebrationOrb({ streak = 1, mode = 'sore' }) {
 
     // Animation Loop
     let animId;
+    // Viewport Visibility Observer (Pause offscreen animation to preserve mobile GPU)
+    let isVisible = true;
+    let observer = null;
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      observer = new window.IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+      }, { threshold: 0.05 });
+      observer.observe(container);
+    }
+
     let clock = new THREE.Clock();
     let speedMultiplier = 1.0;
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
+      if (!isVisible) return; // Skip calculation when offscreen!
+
       const t = clock.getElapsedTime();
 
       // Smooth decay of spin speed multiplier
@@ -178,6 +191,7 @@ export default function ThreeCelebrationOrb({ streak = 1, mode = 'sore' }) {
 
     return () => {
       cancelAnimationFrame(animId);
+      if (observer) observer.disconnect();
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
       }

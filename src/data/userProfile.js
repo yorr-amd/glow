@@ -57,16 +57,36 @@ export function saveUserProfile(profile) {
  */
 export function clearUserProfile() {
   try {
-    localStorage.removeItem(PROFILE_STORAGE_KEY);
-    localStorage.removeItem('ceceyori_view_state');
-    localStorage.removeItem('ceceyori_checked_items');
-    localStorage.removeItem('ceceyori_streak_history');
-    localStorage.removeItem('ceceyori_daily_history');
-    localStorage.removeItem('ceceyori_daily_completion');
-    localStorage.removeItem('ceceyori_custom_products');
-    localStorage.removeItem('ceceyori_deleted_products');
-    localStorage.removeItem('ceceyori_routine_order');
-    localStorage.removeItem('ceceyori_quick_mode');
+    const keysToRemove = [
+      PROFILE_STORAGE_KEY,
+      'ceceyori_view_state',
+      'ceceyori_checked_items',
+      'ceceyori_streak_history',
+      'ceceyori_daily_history',
+      'ceceyori_daily_completion',
+      'ceceyori_custom_products',
+      'ceceyori_deleted_products',
+      'ceceyori_routine_order',
+      'ceceyori_quick_mode',
+      'ceceyori_toner_enabled',
+      'ceceyori_notified_today',
+      'ceceyori_glow_vibes_count',
+      'glow_auto_update_enabled',
+      'glow_last_update_check',
+      'glow_dismissed_update_version',
+    ];
+
+    if (typeof localStorage !== 'undefined') {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('ceceyori_') || k.startsWith('glow_'))) {
+          if (!keysToRemove.includes(k) && k !== 'glow_fresh_v113_reset') {
+            keysToRemove.push(k);
+          }
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    }
     return true;
   } catch (e) {
     console.error('Failed to clear user profile:', e);

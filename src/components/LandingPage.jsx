@@ -187,7 +187,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             Fitur Cerdas & Aesthetic
           </span>
           <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#3D1F2A]">
-            Didesain Khusus untuk Perjalanan Glowing Cece
+            Didesain Khusus untuk Perjalanan Glowing Kulitmu
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
             Setiap detail dirancang untuk memastikan kamu tidak pernah melewatkan waktu perawatan kulit terbaik.

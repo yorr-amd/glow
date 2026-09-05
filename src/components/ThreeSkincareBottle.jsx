@@ -31,6 +31,7 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
     const container = mountRef.current;
     if (!container) return;
 
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const width = container.clientWidth || 170;
     const height = 210;
 
@@ -39,10 +40,10 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 0, 8.2);
 
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' });
+    // Renderer (Lightweight & optimized for mobile GPU)
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: !isMobile, powerPreference: 'low-power' });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(isMobile ? 1 : Math.min(window.devicePixelRatio, 1.5));
     container.appendChild(renderer.domElement);
 
     // Lights
@@ -61,19 +62,14 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
     const bottleGroup = new THREE.Group();
     scene.add(bottleGroup);
 
-    // 1. Outer Glass Bottle Body (Luxury thick crystal glass)
-    const glassGeometry = new THREE.CylinderGeometry(1.2, 1.2, 3.4, 32);
-    const glassMaterial = new THREE.MeshPhysicalMaterial({
+    // 1. Outer Glass Bottle Body (Optimized standard glass for mobile smoothness)
+    const glassGeometry = new THREE.CylinderGeometry(1.2, 1.2, 3.4, isMobile ? 20 : 32);
+    const glassMaterial = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       transparent: true,
       opacity: 0.45,
-      roughness: 0.05,
-      metalness: 0.1,
-      transmission: 0.9,
-      ior: 1.52,
-      reflectivity: 0.9,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.1,
+      roughness: 0.1,
+      metalness: 0.15,
     });
     const glassMesh = new THREE.Mesh(glassGeometry, glassMaterial);
     glassMesh.position.y = 0;
@@ -244,12 +240,24 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('touchend', onTouchEnd);
 
+    // Viewport Visibility Observer (Pause offscreen animation to preserve mobile GPU)
+    let isVisible = true;
+    let observer = null;
+    if (typeof window !== 'undefined' && 'IntersectionObserver' in window) {
+      observer = new window.IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting;
+      }, { threshold: 0.05 });
+      observer.observe(container);
+    }
+
     // Animation Loop
     let animationFrameId;
     let clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+      if (!isVisible) return; // Skip calculation when offscreen!
+
       const elapsed = clock.getElapsedTime();
 
       // Gentle floating & auto slow-spin if not dragging
@@ -276,6 +284,7 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      if (observer) observer.disconnect();
       domEl.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);

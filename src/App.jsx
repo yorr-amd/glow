@@ -110,6 +110,21 @@ function LiveClock({ mode }) {
 export default function App() {
   const { lang, toggleLang, t, isEn } = useLanguage();
 
+  // ── Auto-Clean Residual Demo Data for Fresh User Experience ──
+  const [freshChecked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const FRESH_KEY = 'glow_fresh_v113_clean';
+      if (!localStorage.getItem(FRESH_KEY)) {
+        const saved = getSavedUserProfile();
+        if (!saved || !saved.isRegistered || !saved.name) {
+          clearUserProfile();
+        }
+        localStorage.setItem(FRESH_KEY, 'true');
+      }
+    }
+    return true;
+  });
+
   // ── State: User Profile & Modals ──
   const [userProfile, setUserProfile] = useState(() => getSavedUserProfile());
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -711,7 +726,7 @@ export default function App() {
           <DailyQuote mode={mode} />
 
           {/* 💎 3D Interactive Glow Crystal Orb with Levels & Fortunes */}
-          <ThreeCelebrationOrb streak={todayCompleted ? 1 : 0} mode={mode} />
+          <ThreeCelebrationOrb streak={currentStreak} mode={mode} />
           
           {/* Strict Consecutive Streak Counter */}
           <StreakCounter
@@ -793,7 +808,7 @@ export default function App() {
         userProfile={userProfile}
         onUpdateProfile={(p) => setUserProfile(p)}
         onLogout={handleLogout}
-        streak={todayCompleted ? 2 : 1}
+        streak={currentStreak}
         onShowUpdate={(update) => {
           setAvailableUpdate(update);
           setShowUpdateModal(true);
