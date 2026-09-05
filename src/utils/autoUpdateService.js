@@ -258,8 +258,24 @@ export async function triggerAutoInstall(updateInfo, onProgress) {
       console.warn('[Glow AutoUpdate] Tauri native updater gagal/fallback ke installer exe:', tauriErr);
     }
 
-    // Fallback Desktop: Unduh installer Windows (.exe)
+    // Fallback Desktop: Gunakan in-app direct background downloader via Tauri command
     const winDownloadUrl = updateInfo.winUrl || updateInfo.releaseUrl;
+    if (typeof window !== 'undefined' && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
+      try {
+        onProgress?.({ status: 'downloading', message: 'Sedang mengunduh pembaruan di latar belakang...' });
+        const { invoke } = await import('@tauri-apps/api/core');
+        const res = await invoke('run_in_app_update', { url: winDownloadUrl });
+        return {
+          success: true,
+          mode: 'in_app_direct_installer',
+          message: res || 'Pembaruan berhasil diunduh dan sedang dipasang!',
+        };
+      } catch (invokeErr) {
+        console.warn('[Glow AutoUpdate] In-app direct installer gagal, fallback ke browser:', invokeErr);
+      }
+    }
+
+    // Fallback Web Browser biasa jika dijalankan di luar aplikasi Tauri
     const winFileName = updateInfo.winName || `Glow-Setup-${updateInfo.latestVersion || 'latest'}.exe`;
     downloadInBrowser(winDownloadUrl, winFileName);
 

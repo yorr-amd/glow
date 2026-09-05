@@ -16,12 +16,19 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
   const platform = updateInfo.platform || getAppPlatform();
   const isDesktop = platform === 'desktop';
 
+  const [progressText, setProgressText] = useState('');
+
   const handleStartUpdate = async () => {
     try {
       setInstallStatus('downloading');
       setErrorMessage('');
+      setProgressText(isDesktop ? 'Mengunduh pembaruan di latar belakang...' : 'Memulai unduhan...');
 
-      const result = await triggerAutoInstall(updateInfo);
+      const result = await triggerAutoInstall(updateInfo, (prog) => {
+        if (prog?.message) {
+          setProgressText(prog.message);
+        }
+      });
 
       if (result && result.success) {
         setInstallStatus('started');
@@ -133,13 +140,13 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
                   : (isEn ? 'Starting Download...' : 'Memulai Pengunduhan...')}
               </p>
               <p className="text-[11px] text-amber-700">
-                {isDesktop
+                {progressText || (isDesktop
                   ? (isEn
-                      ? 'Downloading update package or Windows setup installer.'
-                      : 'Sedang mengunduh paket pembaruan Windows atau file setup installer.')
+                      ? 'Downloading update package directly in background.'
+                      : 'Sedang mengunduh paket pembaruan langsung di dalam aplikasi.')
                   : (isEn
                       ? 'Downloading APK in background. An install prompt will appear once complete.'
-                      : 'Mengunduh APK di latar belakang. Jendela pemasangan akan muncul otomatis setelah selesai.')}
+                      : 'Mengunduh APK di latar belakang. Jendela pemasangan akan muncul otomatis setelah selesai.'))}
               </p>
             </div>
           </div>
