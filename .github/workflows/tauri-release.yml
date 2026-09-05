@@ -7,85 +7,42 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., v0.2.0)'
-        required: true
+        description: 'Version to release (e.g., v1.1.1)'
+        required: false
         type: string
 
 permissions:
   contents: write
-  packages: write
-
-env:
-  TAURI_SIGNING_PRIVATE_KEY_PATH: ${{ runner.workspace }}/private_key.pem
-  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
 jobs:
-  build:
-    name: Build Tauri App
-    strategy:
-      matrix:
-        platform: [ubuntu-latest, windows-latest, macos-latest]
-        include:
-          - platform: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            artifact_name: glow-linux-x86_64
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact_name: glow-windows-x86_64
-          - platform: macos-latest
-            target: x86_64-apple-darwin
-            artifact_name: glow-macos-x86_64
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-            artifact_name: glow-macos-aarch64
-    runs-on: ${{ matrix.platform }}
+  build-windows:
+    name: 🪟 Build Windows Desktop App
+    runs-on: windows-latest
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: 🟢 Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Setup Rust
+      - name: 🦀 Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
+          targets: x86_64-pc-windows-msvc
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install webview2 --no-progress
-
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install pkg-config
-
-      - name: Cache Rust dependencies
+      - name: 📦 Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
 
-      - name: Install npm dependencies
+      - name: 📦 Install npm dependencies
         run: npm ci
 
-      - name: Build frontend
+      - name: 🏗️ Build frontend web assets
         run: npm run build
 
-      - name: Setup Tauri signing key
-        if: env.TAURI_SIGNING_PRIVATE_KEY != ''
-        run: |
-          echo "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}" > ${{ env.TAURI_SIGNING_PRIVATE_KEY_PATH }}
-          chmod 600 ${{ env.TAURI_SIGNING_PRIVATE_KEY_PATH }}
-
-      - name: Build Tauri App
+      - name: 🚀 Build and Release Tauri Desktop App
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -97,90 +54,21 @@ jobs:
           releaseBody: |
             ## 🌸 Glow ✦ Skincare Companion ${{ github.ref_name }}
             
-            ### ✨ What's New
-            - 🌸 Official Rebranding to **Glow ✦ Skincare Companion**
-            - 🌐 Full **Bilingual Localization (English & Bahasa Indonesia)** with instant switch
-            - ☀️ 4-Phase Dynamic 3D Celestial Atmosphere Canvas (Three.js)
-            - 🧴 Interactive 3D Skincare Serum Bottle with real-time level physics
-            - 🔒 Exfoliation Safety Lock (Toner Merah Wednesday & Saturday rule)
-            - 🔥 Strict Consecutive Streak Counter
-            - 📅 30-Day Skincare History Journal & Virtual Product Shelf (PAO tracking)
-            - 🛡️ 100% Offline-First & Private
+            ### ✨ What's New in ${{ github.ref_name }} / Yang Baru di ${{ github.ref_name }}:
+            - 🌸 **Official Rebranding**: Renamed officially to **Glow ✦ Skincare Companion**.
+            - 📱 **Official Android APK Release**: Now available on Android mobile with full responsive UI & 3D WebGL graphics!
+            - 🌐 **Full Bilingual Support**: Added instant language toggle (**ID 🇮🇩 | EN 🇬🇧**) in the top navigation bar. Routine cards, tooltips, safety locks, and live clocks update reactively without reloading.
+            - ☀️ **4-Phase 3D Celestial Atmosphere**: Real-time astronomical sky visualization powered by Three.js (Morning sun flare, Midday volumetric clouds, Sunset rose-gold horizon, and Night violet moon with 120+ twinkling stars & shooting stars).
+            - 🧴 **3D Procedural Serum Bottle**: Interactive 3D glass serum bottle with real-time liquid level and micro-bubbles that adapt to your routine completion percentage.
+            - 🔒 **Exfoliation Safety Lock**: Red Toner (Sonik Scents) strictly unlocks only on Wednesday & Saturday nights to safeguard your skin barrier.
+            - 🔥 **Consecutive Streak Counter**: Real-time streak tracking with visual fire glow for unbroken consistency.
+            - 📅 **Skincare History Journal & Product Shelf**: 30-day recap journal and virtual vanity shelf with PAO (Period After Opening) tracking.
+            - 🔄 **In-App Auto Update**: Desktop & Android automatic update checker and 1-tap updater.
+            - 🛡️ **100% Offline-First**: Zero tracking, all routine data stays securely on your local device.
             
-            ### Installation
-            Download the appropriate file for your platform:
-            - **Windows**: `.exe` or `.msi`
-            - **macOS**: `.dmg` (Intel & Apple Silicon)
-            - **Linux**: `.AppImage` or `.deb`
+            ---
             
-            ### Verification
-            All releases are signed with our private key. The updater will verify signatures automatically.
-          args: --target ${{ matrix.target }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/**/*
-          retention-days: 7
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: List artifacts
-        run: find artifacts -type f -name "*.msi" -o -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.sig" | sort
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Glow ✦ Skincare Companion ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          files: |
-            artifacts/*.msi
-            artifacts/*.exe
-            artifacts/*.dmg
-            artifacts/*.AppImage
-            artifacts/*.deb
-            artifacts/*.sig
-          body: |
-            ## 🌸 Glow ✦ Skincare Companion ${{ github.ref_name }}
-            
-            ### ✨ What's New
-            - 🌸 Official Rebranding to **Glow ✦ Skincare Companion**
-            - 🌐 Full **Bilingual Localization (English & Bahasa Indonesia)** with instant switch
-            - ☀️ 4-Phase Dynamic 3D Celestial Atmosphere Canvas (Three.js)
-            - 🧴 Interactive 3D Skincare Serum Bottle with real-time level physics
-            - 🔒 Exfoliation Safety Lock (Toner Merah Wednesday & Saturday rule)
-            - 🔥 Strict Consecutive Streak Counter
-            - 📅 30-Day Skincare History Journal & Virtual Product Shelf (PAO tracking)
-            - 🛡️ 100% Offline-First & Private
-            
-            ### Installation
-            Download the appropriate file for your platform:
-            - **Windows**: `.exe` or `.msi`
-            - **macOS**: `.dmg` (Intel & Apple Silicon)
-            - **Linux**: `.AppImage` or `.deb`
-            
-            ### Verification
-            All releases are signed with our private key. The updater will verify signatures automatically.
-          generate_release_notes: true
-
-      - name: Upload signature files separately
-        if: always()
-        run: |
-          # Ensure .sig files are uploaded
-          find artifacts -name "*.sig" | xargs -I {} gh release upload ${{ github.ref_name }} {} --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            ### 📦 Downloads / Unduhan:
+            - 🪟 **Windows Installer**: `Glow_${{ github.ref_name }}_x64-setup.exe`
+            - 📱 **Android APK**: `Glow-${{ github.ref_name }}.apk`
+          args: --target x86_64-pc-windows-msvc
