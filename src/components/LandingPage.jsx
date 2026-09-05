@@ -28,7 +28,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
       {/* ══════════════════════════════════════════
           TOP NAVIGATION BAR
       ══════════════════════════════════════════ */}
-      <header className="sticky top-0 z-40 bg-white/75 backdrop-blur-md border-b border-pink-100/80 px-6 py-3.5 transition-all">
+      <header className="sticky top-0 z-40 bg-white/75 backdrop-blur-md border-b border-pink-100/80 px-6 py-3.5 transition-all pt-safe">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           
           {/* Brand Logo */}

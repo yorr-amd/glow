@@ -10,13 +10,12 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
   const [installStatus, setInstallStatus] = useState('idle'); // 'idle' | 'downloading' | 'started' | 'error'
   const [errorMessage, setErrorMessage] = useState('');
   const [dontRemind, setDontRemind] = useState(false);
+  const [progressText, setProgressText] = useState('');
 
   if (!isOpen || !updateInfo) return null;
 
   const platform = updateInfo.platform || getAppPlatform();
   const isDesktop = platform === 'desktop';
-
-  const [progressText, setProgressText] = useState('');
 
   const handleStartUpdate = async () => {
     try {

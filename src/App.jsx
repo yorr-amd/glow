@@ -521,7 +521,7 @@ export default function App() {
       {/* ══════════════════════════════════════════
           TOP NAVIGATION BAR & MODE TABS (MOBILE)
       ══════════════════════════════════════════ */}
-      <header className="lg:hidden sticky top-0 z-40 bg-white/85 backdrop-blur-lg border-b border-pink-100/90 shadow-2xs transition-all">
+      <header className="lg:hidden sticky top-0 z-40 bg-white/85 backdrop-blur-lg border-b border-pink-100/90 shadow-2xs transition-all pt-safe">
         {/* Top Mobile Bar: Brand, Streak Flame, Language & Profile */}
         <div className="px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -659,7 +659,7 @@ export default function App() {
       {/* ══════════════════════════════════════════
           MAIN CONTENT
       ══════════════════════════════════════════ */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-32 lg:pb-12">
+      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] lg:pb-12">
         
         {/* Main Checklist: Displayed FIRST on mobile (order-1 lg:order-2) */}
         <section className="order-1 lg:order-2 lg:col-span-8">
@@ -728,7 +728,7 @@ export default function App() {
       {/* ══════════════════════════════════════════
           FLOATING MOBILE BOTTOM NAVIGATION DOCK
       ══════════════════════════════════════════ */}
-      <nav className="lg:hidden fixed bottom-3 inset-x-3 z-40 bg-white/92 backdrop-blur-xl border border-pink-200/80 rounded-2xl shadow-xl px-3 py-2 flex items-center justify-between">
+      <nav className="lg:hidden fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom,0px))] inset-x-3 z-40 bg-white/92 backdrop-blur-xl border border-pink-200/80 rounded-2xl shadow-xl px-3 py-2 flex items-center justify-between">
         {/* Toggle Routine Mode (Quick / Lengkap) */}
         <button
           onClick={toggleRoutineMode}
