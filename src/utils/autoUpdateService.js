@@ -4,7 +4,7 @@
  * pengunduhan serta pemasangan otomatis (1-Tap Auto Update) di Android APK & Web.
  */
 
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.1.1';
 export const GITHUB_REPO = 'yorr-amd/glow';
 
 const AUTO_UPDATE_STORAGE_KEY = 'glow_auto_update_enabled';

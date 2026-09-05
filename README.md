@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-1.1.0-pink?style=for-the-badge&logo=tauri)
+![Version](https://img.shields.io/badge/version-1.1.1-pink?style=for-the-badge&logo=tauri)
 ![Tauri](https://img.shields.io/badge/Tauri_2.0-Rust-orange?style=for-the-badge&logo=rust)
 ![React](https://img.shields.io/badge/React_18-Vite-61DAFB?style=for-the-badge&logo=react)
 ![Three.js](https://img.shields.io/badge/Three.js-3D_Graphics-black?style=for-the-badge&logo=three.js)
@@ -14,12 +14,12 @@
 
 <br />
 
-### 📥 Download Official Release (v1.1.0)
+### 📥 Download Official Release (v1.1.1)
 | Platform | Package | Download Link |
 |---|---|---|
-| 📱 **Android** | `Glow-v1.1.0.apk` | [⬇️ **Download Android APK (4.48 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.0/Glow-v1.1.0.apk) |
-| 🪟 **Windows Installer** | `Glow_1.1.0_x64-setup.exe` | [⬇️ **Download Setup (3.57 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.0/Glow_1.1.0_x64-setup.exe) |
-| 🪟 **Windows Portable** | `Glow-v1.1.0-portable.exe` | [⬇️ **Download Portable (14.2 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.0/Glow-v1.1.0-portable.exe) |
+| 📱 **Android** | `Glow-v1.1.1.apk` | [⬇️ **Download Android APK (4.48 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.1/Glow-v1.1.1.apk) |
+| 🪟 **Windows Installer** | `Glow_1.1.1_x64-setup.exe` | [⬇️ **Download Setup (3.57 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.1/Glow_1.1.1_x64-setup.exe) |
+| 🪟 **Windows Portable** | `Glow-v1.1.1-portable.exe` | [⬇️ **Download Portable (14.2 MB)**](https://github.com/yorr-amd/glow/releases/download/v1.1.1/Glow-v1.1.1-portable.exe) |
 
 <br />
 
@@ -149,7 +149,7 @@ npm run build
 npx tauri build
 ```
 The installer setup will be generated at:
-`src-tauri/target/release/bundle/nsis/Glow_1.1.0_x64-setup.exe`
+`src-tauri/target/release/bundle/nsis/Glow_1.1.1_x64-setup.exe`
 
 <br />
 
