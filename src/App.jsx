@@ -799,6 +799,18 @@ export default function App() {
           setShowUpdateModal(true);
         }}
         onResetAllData={handleResetAllData}
+        onOpenOnboarding={() => {
+          setShowAccountModal(false);
+          setShowAuthModal(true);
+        }}
+      />
+
+      {/* Onboarding Setup Wizard Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        userProfile={userProfile}
+        onLoginSuccess={handleLoginSuccess}
+        onClose={() => setShowAuthModal(false)}
       />
 
       {/* Auto Update Notification Modal */}

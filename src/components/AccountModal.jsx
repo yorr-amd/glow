@@ -34,7 +34,7 @@ const SKIN_TYPES = [
   'Acne-Prone',
 ];
 
-export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData }) {
+export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData, onOpenOnboarding }) {
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings'
   const [formData, setFormData] = useState({ ...userProfile });
   const [isSavedToast, setIsSavedToast] = useState(false);
@@ -348,6 +348,19 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
               </div>
 
               <div className="pt-2 flex flex-col gap-2">
+                {onOpenOnboarding && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenOnboarding();
+                    }}
+                    className="w-full py-2.5 rounded-xl border border-pink-300 bg-pink-50/70 hover:bg-pink-100 text-[#D06885] hover:text-[#9B4B62] text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <Sparkles size={14} className="text-pink-500" />
+                    <span>Mulai Ulang Wizard Setup & Onboarding 🌸</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={onLogout}
