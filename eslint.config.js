@@ -41,6 +41,7 @@ export default [
         requestAnimationFrame: 'readonly',
         cancelAnimationFrame: 'readonly',
         caches: 'readonly',
+        global: 'readonly',
       },
     },
     plugins: {

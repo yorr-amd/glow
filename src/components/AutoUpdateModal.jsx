@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, Download, X, CheckCircle2, ArrowRight, Smartphone, AlertCircle } from 'lucide-react';
-import { triggerAutoInstall, setDismissedVersion, formatFileSize } from '../utils/autoUpdateService';
+import { Sparkles, Download, X, CheckCircle2, ArrowRight, Smartphone, Monitor, AlertCircle } from 'lucide-react';
+import { triggerAutoInstall, setDismissedVersion, formatFileSize, getAppPlatform } from '../utils/autoUpdateService';
 import { useLanguage } from '../i18n/LanguageContext';
 
 export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
@@ -12,6 +12,9 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
   const [dontRemind, setDontRemind] = useState(false);
 
   if (!isOpen || !updateInfo) return null;
+
+  const platform = updateInfo.platform || getAppPlatform();
+  const isDesktop = platform === 'desktop';
 
   const handleStartUpdate = async () => {
     try {
@@ -63,7 +66,9 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-[#D06885]">
-                {isEn ? 'New Update Available' : 'Pembaruan Baru Tersedia'}
+                {isDesktop
+                  ? (isEn ? 'Desktop Update Available' : 'Pembaruan Desktop Tersedia')
+                  : (isEn ? 'New Update Available' : 'Pembaruan Baru Tersedia')}
               </span>
             </div>
             <h3 className="font-display text-[#3D1F2A] font-bold text-xl leading-snug">
@@ -92,11 +97,13 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
             <p className="font-mono text-xs font-extrabold text-[#9B4B62]">v{updateInfo.latestVersion}</p>
           </div>
 
-          {updateInfo.apkSize && (
+          {(isDesktop ? (updateInfo.winSize || updateInfo.apkSize) : updateInfo.apkSize) && (
             <div className="border-l border-pink-200/80 pl-3 text-right">
-              <p className="text-[10px] uppercase font-bold text-slate-400">APK Size</p>
+              <p className="text-[10px] uppercase font-bold text-slate-400">
+                {isDesktop ? (isEn ? 'Installer' : 'Windows') : 'APK Size'}
+              </p>
               <p className="font-mono text-xs font-semibold text-slate-700">
-                {formatFileSize(updateInfo.apkSize)}
+                {formatFileSize(isDesktop ? (updateInfo.winSize || updateInfo.apkSize) : updateInfo.apkSize)}
               </p>
             </div>
           )}
@@ -106,7 +113,7 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
         {updateInfo.releaseNotes && (
           <div className="mb-5">
             <p className="text-xs font-bold text-[#3D1F2A] mb-1.5 flex items-center gap-1">
-              <Smartphone size={13} className="text-[#D06885]" />
+              {isDesktop ? <Monitor size={13} className="text-[#D06885]" /> : <Smartphone size={13} className="text-[#D06885]" />}
               <span>{isEn ? "What's New in this Version:" : 'Catatan Pembaruan:'}</span>
             </p>
             <div className="bg-white/80 border border-pink-100 rounded-xl p-3 max-h-36 overflow-y-auto text-xs text-slate-600 leading-relaxed font-sans scrollbar-thin">
@@ -120,11 +127,19 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
           <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-3.5 flex items-center gap-3 animate-pulse">
             <Download size={20} className="text-amber-600 animate-bounce" />
             <div className="text-xs text-amber-800">
-              <p className="font-bold">{isEn ? 'Starting Download...' : 'Memulai Pengunduhan...'}</p>
+              <p className="font-bold">
+                {isDesktop
+                  ? (isEn ? 'Updating Glow Desktop...' : 'Memperbarui Glow Desktop...')
+                  : (isEn ? 'Starting Download...' : 'Memulai Pengunduhan...')}
+              </p>
               <p className="text-[11px] text-amber-700">
-                {isEn
-                  ? 'Downloading APK in background. An install prompt will appear once complete.'
-                  : 'Mengunduh APK di latar belakang. Jendela pemasangan akan muncul otomatis setelah selesai.'}
+                {isDesktop
+                  ? (isEn
+                      ? 'Downloading update package or Windows setup installer.'
+                      : 'Sedang mengunduh paket pembaruan Windows atau file setup installer.')
+                  : (isEn
+                      ? 'Downloading APK in background. An install prompt will appear once complete.'
+                      : 'Mengunduh APK di latar belakang. Jendela pemasangan akan muncul otomatis setelah selesai.')}
               </p>
             </div>
           </div>
@@ -134,11 +149,19 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
           <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 flex items-center gap-3">
             <CheckCircle2 size={20} className="text-emerald-600" />
             <div className="text-xs text-emerald-800">
-              <p className="font-bold">{isEn ? 'Download In Progress!' : 'Pengunduhan Berjalan!'}</p>
+              <p className="font-bold">
+                {isDesktop
+                  ? (isEn ? 'Update Ready!' : 'Pembaruan Siap!')
+                  : (isEn ? 'Download In Progress!' : 'Pengunduhan Berjalan!')}
+              </p>
               <p className="text-[11px] text-emerald-700">
-                {isEn
-                  ? 'Check your device notification tray to install the update.'
-                  : 'Periksa bilah notifikasi HP kamu atau tunggu sesaat untuk memasang pembaruan.'}
+                {isDesktop
+                  ? (isEn
+                      ? 'Update installed or setup file downloaded. Relaunch or run setup to finish.'
+                      : 'Pembaruan telah siap atau file setup telah diunduh. Muat ulang aplikasi atau jalankan setup.')
+                  : (isEn
+                      ? 'Check your device notification tray to install the update.'
+                      : 'Periksa bilah notifikasi HP kamu atau tunggu sesaat untuk memasang pembaruan.')}
               </p>
             </div>
           </div>
@@ -160,7 +183,11 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
               className="w-full py-3 px-4 rounded-xl bg-linear-to-r from-[#D06885] to-[#9B4B62] hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer disabled:opacity-50"
             >
               <Download size={16} />
-              <span>{isEn ? 'Update Now (1-Tap Auto Update)' : 'Perbarui Otomatis Sekarang (1-Klik)'}</span>
+              <span>
+                {isDesktop
+                  ? (isEn ? 'Update Now (Windows)' : 'Perbarui Sekarang (Windows)')
+                  : (isEn ? 'Update Now (1-Tap Auto Update)' : 'Perbarui Otomatis Sekarang (1-Klik)')}
+              </span>
             </button>
           ) : (
             <button

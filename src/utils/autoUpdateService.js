@@ -46,6 +46,19 @@ export function formatFileSize(bytes) {
   return `${mb.toFixed(2)} MB`;
 }
 
+/**
+ * Deteksi platform aplikasi saat ini ('desktop' | 'android' | 'web')
+ */
+export function getAppPlatform() {
+  if (typeof window !== 'undefined') {
+    if (window.__TAURI_INTERNALS__ || window.__TAURI__) return 'desktop';
+    if (window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'android') {
+      return 'android';
+    }
+  }
+  return 'web';
+}
+
 function getStorageItem(key) {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
@@ -143,12 +156,18 @@ export async function checkForAppUpdates({ force = false, silent = false } = {})
     const remoteVersion = remoteTag.replace(/^v/i, '').trim();
     const hasNewVersion = isNewerVersion(remoteVersion, APP_VERSION);
 
-    // Cari aset APK dari daftar aset rilis
+    // Cari aset APK dan Windows Installer dari daftar aset rilis
     const assets = Array.isArray(data.assets) ? data.assets : [];
     const apkAsset = assets.find((a) => a.name && a.name.toLowerCase().endsWith('.apk'));
     const winAsset = assets.find(
-      (a) => a.name && (a.name.toLowerCase().endsWith('-setup.exe') || a.name.toLowerCase().endsWith('.exe'))
+      (a) =>
+        a.name &&
+        (a.name.toLowerCase().endsWith('-setup.exe') ||
+          a.name.toLowerCase().endsWith('.exe') ||
+          a.name.toLowerCase().endsWith('.msi'))
     );
+
+    const platform = getAppPlatform();
 
     const updateInfo = {
       updateAvailable: hasNewVersion,
@@ -158,10 +177,13 @@ export async function checkForAppUpdates({ force = false, silent = false } = {})
       title: data.name || remoteTag,
       releaseNotes: data.body || '',
       publishedAt: data.published_at,
+      platform,
       apkUrl: apkAsset ? apkAsset.browser_download_url : null,
       apkSize: apkAsset ? apkAsset.size : null,
       apkName: apkAsset ? apkAsset.name : `Glow-v${remoteVersion || 'latest'}.apk`,
       winUrl: winAsset ? winAsset.browser_download_url : null,
+      winSize: winAsset ? winAsset.size : null,
+      winName: winAsset ? winAsset.name : `Glow-Setup-${remoteVersion || 'latest'}.exe`,
       releaseUrl: data.html_url || `https://github.com/${GITHUB_REPO}/releases`,
     };
 
@@ -185,20 +207,75 @@ export async function checkForAppUpdates({ force = false, silent = false } = {})
   }
 }
 
+function downloadInBrowser(url, fileName) {
+  if (typeof window === 'undefined') return;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 /**
  * Menjalankan proses pengunduhan dan instalasi otomatis
  */
-export async function triggerAutoInstall(updateInfo) {
-  const downloadUrl = updateInfo.apkUrl || updateInfo.releaseUrl;
-  const fileName = updateInfo.apkName || 'Glow-update.apk';
-  const version = updateInfo.latestVersion || 'latest';
+export async function triggerAutoInstall(updateInfo, onProgress) {
+  const platform = updateInfo.platform || getAppPlatform();
 
-  // 1. Periksa apakah berjalan di lingkungan Capacitor Native (Android)
-  const isCapacitor = typeof window !== 'undefined' && window.Capacitor;
-  const isAndroid = isCapacitor && window.Capacitor.getPlatform() === 'android';
-
-  if (isAndroid && window.Capacitor.Plugins?.AutoUpdate) {
+  // 1. Jalur Desktop Tauri (Windows Native)
+  if (platform === 'desktop') {
+    // Coba gunakan plugin updater resmi Tauri 2 jika tersedia
     try {
+      if (typeof window !== 'undefined' && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
+        const { check } = await import('@tauri-apps/plugin-updater');
+        const update = await check();
+        if (update) {
+          let downloaded = 0;
+          let total = 0;
+          await update.downloadAndInstall((event) => {
+            if (event.event === 'Started') {
+              total = event.data.contentLength || 0;
+              onProgress?.({ status: 'downloading', downloaded: 0, total });
+            } else if (event.event === 'Progress') {
+              downloaded += event.data.chunkLength;
+              onProgress?.({ status: 'downloading', downloaded, total });
+            } else if (event.event === 'Finished') {
+              onProgress?.({ status: 'installed' });
+            }
+          });
+
+          return {
+            success: true,
+            mode: 'tauri_native_updater',
+            message: 'Pembaruan aplikasi desktop berhasil dipasang! Silakan muat ulang aplikasi.',
+          };
+        }
+      }
+    } catch (tauriErr) {
+      console.warn('[Glow AutoUpdate] Tauri native updater gagal/fallback ke installer exe:', tauriErr);
+    }
+
+    // Fallback Desktop: Unduh installer Windows (.exe)
+    const winDownloadUrl = updateInfo.winUrl || updateInfo.releaseUrl;
+    const winFileName = updateInfo.winName || `Glow-Setup-${updateInfo.latestVersion || 'latest'}.exe`;
+    downloadInBrowser(winDownloadUrl, winFileName);
+
+    return {
+      success: true,
+      mode: 'windows_installer_download',
+      message: 'Mengunduh file installer Windows (.exe). Buka file setelah selesai untuk memperbarui.',
+    };
+  }
+
+  // 2. Jalur Mobile Android (Capacitor Native)
+  if (platform === 'android' && window.Capacitor?.Plugins?.AutoUpdate) {
+    try {
+      const downloadUrl = updateInfo.apkUrl || updateInfo.releaseUrl;
+      const fileName = updateInfo.apkName || 'Glow-update.apk';
+      const version = updateInfo.latestVersion || 'latest';
       const res = await window.Capacitor.Plugins.AutoUpdate.downloadAndInstall({
         url: downloadUrl,
         version: version,
@@ -207,29 +284,21 @@ export async function triggerAutoInstall(updateInfo) {
       return {
         success: true,
         mode: 'native_installer',
-        message: res.message || 'Mulai mengunduh di latar belakang',
+        message: res.message || 'Mulai mengunduh APK di latar belakang',
       };
     } catch (nativeErr) {
-      console.warn('[Glow AutoUpdate] Native plugin gagal, fallback ke browser:', nativeErr);
+      console.warn('[Glow AutoUpdate] Native Android plugin gagal, fallback ke browser:', nativeErr);
     }
   }
 
-  // 2. Fallback: Buka download langsung via browser / sistem
-  if (typeof window !== 'undefined') {
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = fileName;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    return {
-      success: true,
-      mode: 'browser_download',
-      message: 'Mengunduh file pembaruan melalui browser',
-    };
-  }
+  // 3. Fallback Web / Browser Biasa
+  const defaultDownloadUrl = updateInfo.apkUrl || updateInfo.winUrl || updateInfo.releaseUrl;
+  const defaultFileName = updateInfo.apkName || updateInfo.winName || 'Glow-update';
+  downloadInBrowser(defaultDownloadUrl, defaultFileName);
 
-  return { success: false, message: 'Tidak dapat memulai unduhan' };
+  return {
+    success: true,
+    mode: 'browser_download',
+    message: 'Mengunduh file pembaruan melalui browser',
+  };
 }
