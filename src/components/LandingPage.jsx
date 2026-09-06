@@ -91,11 +91,11 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             <div className="lg:col-span-7 space-y-6 text-white">
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/30 text-xs font-semibold tracking-wide">
                 <span>{currentConfig.icon}</span>
-                <span>Rutinitas Real-time Aktif ({currentConfig.label})</span>
+                <span>{t('hero.activeRoutine', 'Rutinitas Real-time Aktif')} ({t(`modes.${mode}.label`, currentConfig.label)})</span>
               </div>
 
               <h1 className="font-display font-bold leading-tight drop-shadow-sm text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                {currentConfig.heroTitle}
+                {t(`modes.${mode}.heroTitle`, currentConfig.heroTitle)}
               </h1>
 
               <p className="text-white/90 text-sm sm:text-base md:text-lg leading-relaxed max-w-xl font-normal">
@@ -112,7 +112,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
                   <span>
                     {userProfile?.name
                       ? t('hero.startSkincare', 'Lanjut Rutinitas Skincare 🌸')
-                      : (isEn ? 'Get Started (Create Profile) 🌸' : 'Mulai Sekarang (Buat Profil) 🌸')}
+                      : t('landing.getStarted', 'Mulai Sekarang (Buat Profil) 🌸')}
                   </span>
                 </button>
 
@@ -123,7 +123,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-xs text-white">
-                    <span>🌸 <strong>Glow</strong> ✦ {isEn ? 'Personal Skincare Companion' : 'Teman Rutinitas Skincare'}</span>
+                    <span>🌸 <strong>Glow</strong> ✦ {t('landing.welcomeBadge', 'Personal Skincare Companion')}</span>
                   </div>
                 )}
               </div>
@@ -158,17 +158,17 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/10">
                     <span className="flex items-center gap-2">
-                      <Flame size={14} className="text-amber-300" /> Streak Counter
+                      <Flame size={14} className="text-amber-300" /> {t('streak.title', 'Streak Rutinitas')}
                     </span>
-                    <span className="font-semibold">Menjaga Rutinitas Harian 🔥</span>
+                    <span className="font-semibold">{t('landing.streakMotivation', 'Menjaga Rutinitas Harian 🔥')}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={onEnterApp}
-                  className="w-full py-2.5 rounded-xl bg-white/30 hover:bg-white/40 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 rounded-xl bg-white/30 hover:bg-white/40 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span>Buka Lemari Skincare</span>
+                  <span>{t('landing.openShelf', 'Buka Lemari Skincare')}</span>
                   <ArrowRight size={12} />
                 </button>
               </div>
@@ -184,13 +184,13 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
       <section className="max-w-7xl mx-auto px-6 md:px-12 py-16 space-y-12">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <span className="text-xs font-bold uppercase tracking-widest text-[#D06885] bg-pink-100/80 px-3 py-1 rounded-full">
-            Fitur Cerdas & Aesthetic
+            {t('landing.featuresTitle', 'Fitur Cerdas & Aesthetic')}
           </span>
           <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#3D1F2A]">
-            Didesain Khusus untuk Perjalanan Glowing Kulitmu
+            {t('landing.featuresHeading', 'Didesain Khusus untuk Perjalanan Glowing Kulitmu')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            Setiap detail dirancang untuk memastikan kamu tidak pernah melewatkan waktu perawatan kulit terbaik.
+            {t('landing.featuresSubtitle', 'Setiap detail dirancang untuk memastikan kamu tidak pernah melewatkan waktu perawatan kulit terbaik.')}
           </p>
         </div>
 
@@ -201,9 +201,11 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shadow-xs">
               ☀️
             </div>
-            <h3 className="font-display font-bold text-base text-[#3D1F2A]">4-Phase Real-time Sync</h3>
+            <h3 className="font-display font-bold text-base text-[#3D1F2A]">
+              {t('landing.features.f1Title', '4-Phase Real-time Sync')}
+            </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Otomatis menyesuaikan produk dan tema atmosfer sesuai waktu Pagi, Siang, Sore, dan Malam secara sinkron 24 jam.
+              {t('landing.features.f1Desc', 'Otomatis menyesuaikan produk dan tema atmosfer sesuai waktu Pagi, Siang, Sore, dan Malam secara sinkron 24 jam.')}
             </p>
           </div>
 
@@ -212,9 +214,11 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl shadow-xs">
               🔒
             </div>
-            <h3 className="font-display font-bold text-base text-[#3D1F2A]">Toner Merah Safety Lock</h3>
+            <h3 className="font-display font-bold text-base text-[#3D1F2A]">
+              {t('landing.features.f2Title', 'Toner Merah Safety Lock')}
+            </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Terkunci aman di luar hari Rabu & Sabtu malam untuk melindungi skin barrier dari over-exfoliation.
+              {t('landing.features.f2Desc', 'Terkunci aman di luar hari Rabu & Sabtu malam untuk melindungi skin barrier dari over-exfoliation.')}
             </p>
           </div>
 
@@ -223,9 +227,11 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl shadow-xs">
               🧴
             </div>
-            <h3 className="font-display font-bold text-base text-[#3D1F2A]">3D Interactive Serum</h3>
+            <h3 className="font-display font-bold text-base text-[#3D1F2A]">
+              {t('landing.features.f3Title', '3D Interactive Serum')}
+            </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Botol kaca 3D yang bisa diputar 360° dengan cairan glowing yang naik real-time mengikuti persentase centang kamu.
+              {t('landing.features.f3Desc', 'Botol kaca 3D yang bisa diputar 360° dengan cairan glowing yang naik real-time mengikuti persentase centang kamu.')}
             </p>
           </div>
 
@@ -234,9 +240,11 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
             <div className="w-12 h-12 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-xl shadow-xs">
               🔥
             </div>
-            <h3 className="font-display font-bold text-base text-[#3D1F2A]">Strict Streak Motivator</h3>
+            <h3 className="font-display font-bold text-base text-[#3D1F2A]">
+              {t('landing.features.f4Title', 'Strict Streak Motivator')}
+            </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Menghitung konsistensi hari berurutan. Api tetap menyala jika kamu konsisten merawat diri setiap hari.
+              {t('landing.features.f4Desc', 'Menghitung konsistensi hari berurutan. Api tetap menyala jika kamu konsisten merawat diri setiap hari.')}
             </p>
           </div>
 
@@ -248,7 +256,7 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
       ══════════════════════════════════════════ */}
       <footer className="mt-auto border-t border-pink-100/80 bg-white/60 backdrop-blur-md py-6 px-6 text-center text-xs text-slate-400">
         <p>
-          Glow ✦ Personal Skincare Routine • Crafted with 💖 for Glowing Skin
+          {t('landing.footer', 'Glow ✦ Personal Skincare Routine • Crafted with 💖 for Glowing Skin')}
         </p>
       </footer>
 

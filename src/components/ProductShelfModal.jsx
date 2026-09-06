@@ -21,8 +21,10 @@ import {
   deleteProductFromMode,
   restoreDefaultProducts,
 } from '../data/skincareData';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMode }) {
+  const { t, isEn } = useLanguage();
   const [activeModeTab, setActiveModeTab] = useState(routineMode || 'sore');
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -91,8 +93,21 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
     setShowAddForm(true);
   };
 
+  const getModeLabel = (key) => {
+    if (isEn) {
+      if (key === 'pagi') return 'Morning';
+      if (key === 'siang') return 'Afternoon';
+      if (key === 'sore') return 'Evening';
+      return 'Night';
+    }
+    return modeConfig[key]?.label || key;
+  };
+
   const handleDelete = (product) => {
-    if (!window.confirm(`Hapus produk "${product.name}" dari Rutin ${modeConfig[activeModeTab]?.label}?`)) return;
+    const confirmMsg = isEn
+      ? `Delete "${product.name}" from ${getModeLabel(activeModeTab)} routine?`
+      : `Hapus produk "${product.name}" dari Rutin ${getModeLabel(activeModeTab)}?`;
+    if (!window.confirm(confirmMsg)) return;
     deleteProductFromMode(activeModeTab, product.id);
     const updated = getMergedSkincareData();
     setProducts(updated[activeModeTab]?.full || []);
@@ -100,7 +115,10 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
   };
 
   const handleRestoreDefault = () => {
-    if (!window.confirm(`Kembalikan semua produk Rutin ${modeConfig[activeModeTab]?.label} ke daftar bawaan?`)) return;
+    const confirmMsg = isEn
+      ? `Reset all ${getModeLabel(activeModeTab)} routine products to defaults?`
+      : `Kembalikan semua produk Rutin ${getModeLabel(activeModeTab)} ke daftar bawaan?`;
+    if (!window.confirm(confirmMsg)) return;
     restoreDefaultProducts(activeModeTab);
     const updated = getMergedSkincareData();
     setProducts(updated[activeModeTab]?.full || []);
@@ -126,13 +144,14 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
               <Package size={22} />
             </div>
             <div>
-              <h2 className="font-display text-[#3D1F2A] text-lg font-bold">Lemari Skincare (Product Shelf)</h2>
-              <p className="text-xs text-slate-500">Kelola dan kustomisasi produk skincare untuk 4 rutinitas harian</p>
+              <h2 className="font-display text-[#3D1F2A] text-lg font-bold">{t('shelfModal.title')}</h2>
+              <p className="text-xs text-slate-500">{t('shelfModal.subtitle')}</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-white/80 transition-all"
+            title={t('shelfModal.cancel')}
           >
             <X size={20} />
           </button>
@@ -154,7 +173,7 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
               }`}
             >
               <span>{config.icon}</span>
-              <span>Rutin {config.label}</span>
+              <span>{t('shelfModal.routinePrefix')} {getModeLabel(key)}</span>
             </button>
           ))}
         </div>
@@ -165,26 +184,26 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
             <form onSubmit={handleSubmit} className="p-5 bg-pink-50/60 border border-pink-200/80 rounded-2xl space-y-4 animate-scale-in">
               <div className="flex items-center justify-between pb-2 border-b border-pink-200/60">
                 <h3 className="font-display font-bold text-sm text-[#3D1F2A] flex items-center gap-2">
-                  {editingId ? '✏️ Edit Produk' : '➕ Tambah Produk Baru'} (Rutin {modeConfig[activeModeTab]?.label})
+                  {editingId ? `✏️ ${t('shelfModal.editProduct')}` : `➕ ${t('shelfModal.addProduct')}`} ({t('shelfModal.routinePrefix')} {getModeLabel(activeModeTab)})
                 </h3>
                 <button
                   type="button"
                   onClick={resetForm}
                   className="text-xs text-slate-400 hover:text-slate-600 font-semibold"
                 >
-                  Batal
+                  {t('shelfModal.cancel')}
                 </button>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Nama Produk
+                  {t('shelfModal.name')}
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Contoh: Vaseline Soft & Glow / Sunscreen SPF 50"
+                  placeholder={t('shelfModal.namePlaceholder')}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 bg-white focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm font-semibold text-[#3D1F2A]"
                   required
                 />
@@ -192,13 +211,13 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Instruksi Singkat / Catatan
+                  {t('shelfModal.desc')}
                 </label>
                 <input
                   type="text"
                   value={formData.desc}
                   onChange={(e) => setFormData({ ...formData, desc: e.target.value })}
-                  placeholder="Contoh: Kunci kelembapan wajah & leher"
+                  placeholder={t('shelfModal.descPlaceholder')}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 bg-white focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm text-[#3D1F2A]"
                 />
               </div>
@@ -206,33 +225,33 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Kategori Area
+                    {t('shelfModal.category')}
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl border border-pink-200 bg-white text-xs font-semibold text-[#3D1F2A]"
                   >
-                    <option value="face">Wajah (Face)</option>
-                    <option value="lip">Bibir (Lip)</option>
-                    <option value="body">Tubuh (Body)</option>
-                    <option value="exfoliate">Eksfoliasi</option>
+                    <option value="face">{t('shelfModal.categories.face')}</option>
+                    <option value="lip">{t('shelfModal.categories.lip')}</option>
+                    <option value="body">{t('shelfModal.categories.body')}</option>
+                    <option value="exfoliate">{isEn ? 'Exfoliation' : 'Eksfoliasi'}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    PAO (Masa Simpan)
+                    {t('shelfModal.pao')}
                   </label>
                   <select
                     value={formData.pao}
                     onChange={(e) => setFormData({ ...formData, pao: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl border border-pink-200 bg-white text-xs font-semibold text-[#3D1F2A]"
                   >
-                    <option value="3M">3 Bulan (3M)</option>
-                    <option value="6M">6 Bulan (6M)</option>
-                    <option value="12M">12 Bulan (12M)</option>
-                    <option value="24M">24 Bulan (24M)</option>
+                    <option value="3M">{t('shelfModal.paoOptions.m3')}</option>
+                    <option value="6M">{t('shelfModal.paoOptions.m6')}</option>
+                    <option value="12M">{t('shelfModal.paoOptions.m12')}</option>
+                    <option value="24M">{t('shelfModal.paoOptions.m24')}</option>
                   </select>
                 </div>
               </div>
@@ -243,13 +262,13 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
                   onClick={resetForm}
                   className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-white"
                 >
-                  Batal
+                  {t('shelfModal.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
                 >
-                  <Save size={14} /> Simpan Produk
+                  <Save size={14} /> {t('shelfModal.save')}
                 </button>
               </div>
             </form>
@@ -257,60 +276,63 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
             <>
               <div className="flex items-center justify-between pb-2">
                 <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Daftar Produk ({products.length} item)
+                  {isEn ? 'Product List' : 'Daftar Produk'} ({products.length} {isEn ? 'items' : 'item'})
                 </p>
                 <button
                   onClick={() => setShowAddForm(true)}
                   className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md transition-all flex items-center gap-1.5"
                 >
-                  <Plus size={14} /> Tambah Produk
+                  <Plus size={14} /> {t('shelfModal.addProduct')}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="p-4 rounded-2xl border border-pink-100 bg-white shadow-2xs hover:shadow-sm transition-all flex items-start justify-between gap-3 group"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#3D1F2A]">{product.name}</span>
-                        {product.isEssential !== false && (
-                          <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">
-                            Wajib
+                {products.map((product) => {
+                  const displayDesc = isEn && product.desc_en ? product.desc_en : product.desc;
+                  return (
+                    <div
+                      key={product.id}
+                      className="p-4 rounded-2xl border border-pink-100 bg-white shadow-2xs hover:shadow-sm transition-all flex items-start justify-between gap-3 group"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-[#3D1F2A]">{product.name}</span>
+                          {product.isEssential !== false && (
+                            <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">
+                              {t('routine.essential')}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-relaxed">{displayDesc}</p>
+                        <div className="flex items-center gap-2 pt-1">
+                          <span className="text-[9px] uppercase font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
+                            {t(`shelfModal.categories.${product.category || 'face'}`) || product.category || 'face'}
                           </span>
-                        )}
+                          <span className="text-[9px] text-slate-400 font-mono">
+                            PAO: {product.pao || '12M'}
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-slate-500 leading-relaxed">{product.desc}</p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="text-[9px] uppercase font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
-                          {product.category || 'face'}
-                        </span>
-                        <span className="text-[9px] text-slate-400 font-mono">
-                          PAO: {product.pao || '12M'}
-                        </span>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
-                        title="Edit Produk"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                        title="Hapus Produk"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
+                          title={t('shelfModal.edit')}
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                          title={t('shelfModal.delete')}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
@@ -322,13 +344,13 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
             onClick={handleRestoreDefault}
             className="text-xs font-bold text-slate-500 hover:text-rose-600 flex items-center gap-1.5 transition-colors"
           >
-            <RotateCcw size={13} /> Reset Bawaan Rutin Ini
+            <RotateCcw size={13} /> {t('shelfModal.resetDefault')}
           </button>
           <button
             onClick={onClose}
             className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md transition-all"
           >
-            Selesai
+            {isEn ? 'Done' : 'Selesai'}
           </button>
         </div>
 

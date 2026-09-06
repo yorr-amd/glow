@@ -58,7 +58,7 @@ export function checkAndSendRoutineReminders() {
   if (hour >= 7 && hour < 10 && !notified.morning) {
     notifySkincare(
       '☀️ Rutin Pagi Dimulai!',
-      'Selamat pagi Cece! Jangan lupa cuci muka & sunscreen ☀️'
+      'Selamat pagi! Jangan lupa cuci muka & sunscreen ☀️'
     );
     notified.morning = true;
   }
@@ -68,7 +68,7 @@ export function checkAndSendRoutineReminders() {
     if (isExfoliatingDay()) {
       notifySkincare(
         '🧪 Jadwal Toner Merah Malam Ini!',
-        'Malam ini jadwal Toner Merah! Jangan lupa eksfoliasi lipatan ya Cece ✨'
+        'Malam ini jadwal Toner Merah! Jangan lupa eksfoliasi lipatan ya ✨'
       );
     } else {
       notifySkincare(

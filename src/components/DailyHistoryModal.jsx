@@ -16,6 +16,7 @@ import {
   Save,
 } from 'lucide-react';
 import { modeConfig } from '../data/skincareData';
+import { useLanguage } from '../i18n/LanguageContext';
 
 export const DAILY_HISTORY_KEY = 'ceceyori_daily_history';
 
@@ -61,6 +62,7 @@ export const recordDayActivity = (dateStr, checkedIds, allItems, mode) => {
 };
 
 export default function DailyHistoryModal({ isOpen, onClose }) {
+  const { t, isEn } = useLanguage();
   const [history, setHistory] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [noteInput, setNoteInput] = useState('');
@@ -102,8 +104,18 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
     saveDailyHistory(updated);
   };
 
+  const getModeLabel = (key) => {
+    if (isEn) {
+      if (key === 'pagi') return 'Morning';
+      if (key === 'siang') return 'Afternoon';
+      if (key === 'sore') return 'Evening';
+      return 'Night';
+    }
+    return modeConfig[key]?.label || key;
+  };
+
   const handleDeleteEntry = (date) => {
-    if (window.confirm(`Hapus catatan skincare tanggal ${date}?`)) {
+    if (window.confirm(`${t('historyModal.deleteConfirm')} ${date}?`)) {
       const updated = { ...history };
       delete updated[date];
       setHistory(updated);
@@ -127,10 +139,10 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
             </div>
             <div>
               <h2 className="font-display font-bold text-lg text-[#3D1F2A] flex items-center gap-1.5">
-                Riwayat & Jurnal Skincare Glow 🌸
+                {t('historyModal.title')}
               </h2>
               <p className="text-xs text-slate-500">
-                Catatan jejak konsistensi dan progres perawatan kulitmu
+                {t('historyModal.subtitle')}
               </p>
             </div>
           </div>
@@ -138,6 +150,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
           <button
             onClick={onClose}
             className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-white/80 transition-all"
+            title={t('historyModal.close')}
           >
             <X size={20} />
           </button>
@@ -146,15 +159,15 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
         {/* Summary Stats Row */}
         <div className="grid grid-cols-3 gap-3 p-4 bg-pink-50/50 border-b border-pink-100">
           <div className="bg-white/80 rounded-2xl p-3 text-center border border-pink-100 shadow-2xs">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Total Hari</p>
-            <p className="font-display text-xl font-bold text-[#D06885]">{totalDays} Hari</p>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">{t('historyModal.totalDays')}</p>
+            <p className="font-display text-xl font-bold text-[#D06885]">{totalDays} {t('streak.days')}</p>
           </div>
           <div className="bg-white/80 rounded-2xl p-3 text-center border border-pink-100 shadow-2xs">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Sesi Selesai</p>
-            <p className="font-display text-xl font-bold text-purple-600">{totalCompletedModes} Sesi</p>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">{t('historyModal.completedSessions')}</p>
+            <p className="font-display text-xl font-bold text-purple-600">{totalCompletedModes} {isEn ? 'Sessions' : 'Sesi'}</p>
           </div>
           <div className="bg-white/80 rounded-2xl p-3 text-center border border-pink-100 shadow-2xs">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Konsistensi</p>
+            <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400">{t('historyModal.consistencyRate')}</p>
             <p className="font-display text-xl font-bold text-amber-500 flex items-center justify-center gap-0.5">
               <Sparkles size={14} /> {totalDays > 0 ? '100%' : '0%'}
             </p>
@@ -167,12 +180,12 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
           {/* Left Column: Date List */}
           <div className="md:col-span-5 p-4 overflow-y-auto space-y-2 max-h-[360px]">
             <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 mb-2">
-              Daftar Tanggal
+              {t('historyModal.dateListTitle')}
             </p>
 
             {dates.length === 0 ? (
               <div className="text-center py-8 text-xs text-slate-400">
-                Belum ada riwayat tercatat. Mulai centang rutinitas hari ini! 🌸
+                {t('historyModal.emptyHistory')}
               </div>
             ) : (
               dates.map((date) => {
@@ -199,7 +212,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
                             key={m}
                             className="text-[9px] px-1.5 py-0.5 rounded-full bg-white font-semibold text-slate-600 border border-slate-100"
                           >
-                            {modeConfig[m]?.icon} {modeConfig[m]?.label}
+                            {modeConfig[m]?.icon} {getModeLabel(m)}
                           </span>
                         ))}
                       </div>
@@ -218,17 +231,17 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
                 <div className="flex items-center justify-between pb-3 border-b border-pink-100">
                   <div>
                     <h3 className="font-display font-bold text-base text-[#3D1F2A]">
-                      Detail: {selectedData.date}
+                      {isEn ? 'Detail' : 'Detail'}: {selectedData.date}
                     </h3>
                     <p className="text-[11px] text-slate-400">
-                      {selectedData.itemsChecked?.length || 0} produk berhasil diaplikasikan
+                      {selectedData.itemsChecked?.length || 0} {isEn ? 'products applied' : 'produk berhasil diaplikasikan'}
                     </p>
                   </div>
 
                   <button
                     onClick={() => handleDeleteEntry(selectedData.date)}
                     className="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all text-xs"
-                    title="Hapus catatan tanggal ini"
+                    title={t('shelfModal.delete')}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -237,7 +250,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
                 {/* Sesi Selesai Badges */}
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
-                    Sesi Waktu Tercatat
+                    {isEn ? 'Recorded Sessions' : 'Sesi Waktu Tercatat'}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {selectedData.modesCompleted?.map((m) => (
@@ -246,7 +259,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
                         className="px-3 py-1.5 rounded-xl text-xs font-bold bg-pink-100 text-pink-700 border border-pink-200 flex items-center gap-1.5 shadow-2xs"
                       >
                         <span>{modeConfig[m]?.icon}</span>
-                        <span>Rutin {modeConfig[m]?.label}</span>
+                        <span>{t('shelfModal.routinePrefix')} {getModeLabel(m)}</span>
                       </span>
                     ))}
                   </div>
@@ -255,13 +268,13 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
                 {/* Catatan Jurnal Pribadi */}
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    Catatan Kondisi Kulit
+                    {t('historyModal.skinCondition')}
                   </label>
                   <textarea
                     rows={3}
                     value={noteInput}
                     onChange={(e) => setNoteInput(e.target.value)}
-                    placeholder="Contoh: Kulit terasa halus setelah pakai toner merah, bangun pagi terasa kenyal..."
+                    placeholder={t('historyModal.notesPlaceholder')}
                     className="w-full p-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white text-xs text-[#3D1F2A]"
                   />
                   <div className="flex justify-end">
@@ -269,14 +282,14 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
                       onClick={handleSaveNote}
                       className="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-[#D06885] hover:bg-[#9B4B62] transition-all flex items-center gap-1 shadow-2xs"
                     >
-                      <Save size={12} /> Simpan Catatan
+                      <Save size={12} /> {t('historyModal.saveNote')}
                     </button>
                   </div>
                 </div>
               </>
             ) : (
               <div className="text-center py-16 text-slate-400 text-xs">
-                Pilih tanggal di sebelah kiri untuk melihat detail catatan skincare.
+                {isEn ? 'Select a date on the left to view skincare details.' : 'Pilih tanggal di sebelah kiri untuk melihat detail catatan skincare.'}
               </div>
             )}
           </div>
@@ -289,7 +302,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
             onClick={onClose}
             className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md transition-all"
           >
-            Tutup Riwayat
+            {t('historyModal.close')}
           </button>
         </div>
 

@@ -4,36 +4,6 @@ use tauri::{
     Manager,
 };
 
-#[cfg(target_os = "windows")]
-fn migrate_legacy_data() {
-    if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
-        let base_path = std::path::PathBuf::from(local_app_data);
-        let old_dir = base_path
-            .join("com.ceceyori.glow")
-            .join("EBWebView")
-            .join("Default")
-            .join("Local Storage")
-            .join("leveldb");
-        let new_dir = base_path
-            .join("com.glow.tracker")
-            .join("EBWebView")
-            .join("Default")
-            .join("Local Storage")
-            .join("leveldb");
-        let marker = base_path.join("com.glow.tracker").join(".migrated_legacy_data");
-
-        if old_dir.exists() && !marker.exists() {
-            let _ = std::fs::create_dir_all(&new_dir);
-            if let Ok(entries) = std::fs::read_dir(&old_dir) {
-                for entry in entries.flatten() {
-                    let target = new_dir.join(entry.file_name());
-                    let _ = std::fs::copy(entry.path(), target);
-                }
-            }
-            let _ = std::fs::File::create(&marker);
-        }
-    }
-}
 
 #[tauri::command]
 async fn run_in_app_update(app: tauri::AppHandle, url: String) -> Result<String, String> {
@@ -86,9 +56,6 @@ async fn run_in_app_update(app: tauri::AppHandle, url: String) -> Result<String,
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    #[cfg(target_os = "windows")]
-    migrate_legacy_data();
-
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())

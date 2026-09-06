@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Sun, AlertTriangle, Droplet, Sparkles } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const PEKANBARU_LAT = -0.5167;
 const PEKANBARU_LON = 101.4500;
 
 export default function WeatherAlert() {
+  const { t } = useLanguage();
   const [uvData, setUvData] = useState(null);
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,16 +48,15 @@ export default function WeatherAlert() {
 
   const uvIndex = uvData ?? 0;
   const isHighUV = uvIndex >= 6;
-  const isVeryHighUV = uvIndex >= 8;
   const temp = weather?.temperature ?? 0;
   const windSpeed = weather?.windspeed ?? 0;
 
   const getUVLevel = (uv) => {
-    if (uv >= 11) return { label: 'Ekstrem', color: 'text-purple-600 bg-purple-50 border-purple-100', icon: '☀️' };
-    if (uv >= 8) return { label: 'Sangat Tinggi', color: 'text-red-600 bg-red-50 border-red-100', icon: '🔴' };
-    if (uv >= 6) return { label: 'Tinggi', color: 'text-orange-600 bg-orange-50 border-orange-100', icon: '🟠' };
-    if (uv >= 3) return { label: 'Sedang', color: 'text-yellow-600 bg-yellow-50 border-yellow-100', icon: '🟡' };
-    return { label: 'Rendah', color: 'text-green-600 bg-green-50 border-green-100', icon: '🟢' };
+    if (uv >= 11) return { label: t('weather.levels.extreme', 'Ekstrem'), color: 'text-purple-600 bg-purple-50 border-purple-100', icon: '☀️' };
+    if (uv >= 8) return { label: t('weather.levels.veryHigh', 'Sangat Tinggi'), color: 'text-red-600 bg-red-50 border-red-100', icon: '🔴' };
+    if (uv >= 6) return { label: t('weather.levels.high', 'Tinggi'), color: 'text-orange-600 bg-orange-50 border-orange-100', icon: '🟠' };
+    if (uv >= 3) return { label: t('weather.levels.moderate', 'Sedang'), color: 'text-yellow-600 bg-yellow-50 border-yellow-100', icon: '🟡' };
+    return { label: t('weather.levels.low', 'Rendah'), color: 'text-green-600 bg-green-50 border-green-100', icon: '🟢' };
   };
 
   const uvLevel = getUVLevel(uvIndex);
@@ -68,7 +69,7 @@ export default function WeatherAlert() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <h3 className="font-semibold text-sm text-[#3D1F2A]">☀️ UV Index Pekanbaru Hari Ini</h3>
+            <h3 className="font-semibold text-sm text-[#3D1F2A]">{t('weather.title', '☀️ UV Index Pekanbaru Hari Ini')}</h3>
             <span className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border ${uvLevel.color}`}>
               {uvLevel.label} ({uvIndex})
             </span>
@@ -79,7 +80,7 @@ export default function WeatherAlert() {
               <Sun size={12} /> {temp}°C
             </span>
             <span className="flex items-center gap-1">
-              <Droplet size={12} /> Angin {windSpeed} km/jam
+              <Droplet size={12} /> {t('weather.wind', 'Angin')} {windSpeed} {t('weather.windUnit', 'km/jam')}
             </span>
           </div>
 
@@ -87,7 +88,7 @@ export default function WeatherAlert() {
             <div className="flex items-center gap-2 p-3 rounded-xl bg-orange-50 border border-orange-100 animate-pulse-subtle">
               <AlertTriangle size={16} className="text-orange-500 flex-shrink-0" />
               <p className="text-sm text-orange-700 font-medium">
-                UV Tinggi sore ini! Jangan lupa <span className="font-bold">Vaseline Soft & Glow SPF 20</span> diulang ya, Ce! ☀️✨
+                {t('weather.warningHigh', 'UV Tinggi saat ini! Jangan lupa aplikasikan sunscreen / body lotion SPF diulang ya! ☀️✨')}
               </p>
             </div>
           )}
@@ -96,7 +97,7 @@ export default function WeatherAlert() {
             <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 border border-green-100">
               <Sparkles size={16} className="text-green-500 flex-shrink-0" />
               <p className="text-sm text-green-700">
-                UV aman buat aktivitas outdoor. Tetap pakai SPF biar glowing terjaga! 💖
+                {t('weather.safeUv', 'UV aman buat aktivitas luar. Tetap pakai pelembap & SPF biar glowing terjaga! 💖')}
               </p>
             </div>
           )}

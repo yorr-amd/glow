@@ -1,27 +1,53 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Sparkles, RotateCw, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 /**
- * 🌸 Cece Yori 3D Interactive Skincare Serum Bottle
+ * 🌸 3D Interactive Skincare Serum Bottle with Smooth Animated Liquid Filling
  * Procedural Luxury 3D Glass Serum Bottle with real-time glowing liquid, internal bubbles, and 360° drag rotation
  */
 export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
+  const { t } = useLanguage();
   const mountRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+  const progressRef = useRef(progress);
 
-  // Vibrant Theme Colors
+  // Keep progressRef in sync with prop without re-mounting the Three.js scene
+  useEffect(() => {
+    progressRef.current = progress;
+  }, [progress]);
+
+  // Smooth numeric counter animation for percentage display
+  const [displayPercent, setDisplayPercent] = useState(progress);
+  useEffect(() => {
+    const target = Math.round(progress);
+    const timer = setInterval(() => {
+      setDisplayPercent((prev) => {
+        if (prev === target) {
+          clearInterval(timer);
+          return target;
+        }
+        const diff = target - prev;
+        const delta = Math.abs(diff) <= 2 ? diff : Math.round(diff * 0.25) || (diff > 0 ? 1 : -1);
+        return prev + delta;
+      });
+    }, 25);
+    return () => clearInterval(timer);
+  }, [progress]);
+
+  // Vibrant Theme Colors & Translated Labels
   const getThemePalette = () => {
     switch (mode) {
       case 'pagi':
-        return { liquid: 0xF59E0B, glow: 0xFBBF24, label: '☀️ Morning Glow Serum' };
+        return { liquid: 0xF59E0B, glow: 0xFBBF24, label: t('bottle.morningLabel', '☀️ Morning Glow Serum') };
       case 'siang':
-        return { liquid: 0x0284C7, glow: 0x38BDF8, label: '🌤️ Hydrating Mist' };
+        return { liquid: 0x0284C7, glow: 0x38BDF8, label: t('bottle.afternoonLabel', '🌤️ Hydrating Mist') };
       case 'sore':
-        return { liquid: 0xE11D48, glow: 0xFB7185, label: '🌇 Rose Glow Essence' };
+        return { liquid: 0xE11D48, glow: 0xFB7185, label: t('bottle.eveningLabel', '🌇 Rose Glow Essence') };
       case 'malam':
       default:
-        return { liquid: 0x7C3AED, glow: 0xC084FC, label: '🌙 Night Repair Elixir' };
+        return { liquid: 0x7C3AED, glow: 0xC084FC, label: t('bottle.nightLabel', '🌙 Night Repair Elixir') };
     }
   };
 
@@ -88,42 +114,47 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
     baseMesh.position.y = -1.75;
     bottleGroup.add(baseMesh);
 
-    // 2. Liquid Inside (Vibrant, colorful & glowing with progress!)
-    const liquidRatio = Math.max(0.06, Math.min(progress / 100, 1));
+    // 2. Liquid Inside (Smooth procedural filling from bottom)
     const maxLiquidH = 3.15;
-    const liquidHeight = maxLiquidH * liquidRatio;
-    const liquidGeometry = new THREE.CylinderGeometry(1.1, 1.1, liquidHeight, 32);
+    const liquidGeometry = new THREE.CylinderGeometry(1.1, 1.1, maxLiquidH, 32);
+    // Translate geometry pivot so bottom is at local y = 0
+    liquidGeometry.translate(0, maxLiquidH / 2, 0);
+
+    const initialRatio = Math.max(0.04, Math.min(progressRef.current / 100, 1));
+    let currentLiquidRatio = initialRatio;
+
     const liquidMaterial = new THREE.MeshStandardMaterial({
       color: palette.liquid,
       emissive: palette.glow,
-      emissiveIntensity: 0.35 + (progress / 100) * 0.35,
+      emissiveIntensity: 0.35 + initialRatio * 0.35,
       transparent: true,
       opacity: 0.85,
       roughness: 0.15,
       metalness: 0.1,
     });
     const liquidMesh = new THREE.Mesh(liquidGeometry, liquidMaterial);
-    liquidMesh.position.y = -1.6 + liquidHeight / 2;
+    liquidMesh.position.y = -1.6; // base of inner bottle
+    liquidMesh.scale.set(1, initialRatio, 1);
     bottleGroup.add(liquidMesh);
 
     // 3. Floating Bubbles inside liquid
-    const bubbleCount = 12;
+    const bubbleCount = 14;
     const bubbles = [];
     for (let i = 0; i < bubbleCount; i++) {
-      const bGeom = new THREE.SphereGeometry(0.06 + Math.random() * 0.05, 8, 8);
+      const bGeom = new THREE.SphereGeometry(0.05 + Math.random() * 0.05, 8, 8);
       const bMat = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.7,
+        opacity: 0.75,
       });
       const bMesh = new THREE.Mesh(bGeom, bMat);
       bMesh.position.set(
-        (Math.random() - 0.5) * 1.5,
-        -1.5 + Math.random() * Math.max(0.5, liquidHeight),
-        (Math.random() - 0.5) * 1.5
+        (Math.random() - 0.5) * 1.3,
+        -1.5 + Math.random() * Math.max(0.4, maxLiquidH * initialRatio),
+        (Math.random() - 0.5) * 1.3
       );
       bottleGroup.add(bMesh);
-      bubbles.push({ mesh: bMesh, speed: 0.01 + Math.random() * 0.015, initialX: bMesh.position.x });
+      bubbles.push({ mesh: bMesh, speed: 0.008 + Math.random() * 0.015, initialX: bMesh.position.x });
     }
 
     // 4. Gold Collar & Dropper Cap
@@ -260,18 +291,28 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
 
       const elapsed = clock.getElapsedTime();
 
+      // Smooth lerp animated liquid level filling up or down!
+      const targetRatio = Math.max(0.04, Math.min(progressRef.current / 100, 1));
+      currentLiquidRatio += (targetRatio - currentLiquidRatio) * 0.08;
+      liquidMesh.scale.y = currentLiquidRatio;
+      liquidMaterial.emissiveIntensity = 0.3 + currentLiquidRatio * 0.45;
+
+      const currentLiquidTop = -1.6 + maxLiquidH * currentLiquidRatio;
+
       // Gentle floating & auto slow-spin if not dragging
       if (!isDragging) {
         bottleGroup.rotation.y += 0.01;
         bottleGroup.position.y = Math.sin(elapsed * 2) * 0.15;
       }
 
-      // Animate bubbles rising
+      // Animate bubbles rising dynamically within current liquid level
       bubbles.forEach((b) => {
         b.mesh.position.y += b.speed;
-        if (b.mesh.position.y > -1.5 + liquidHeight) {
-          b.mesh.position.y = -1.5;
+        if (b.mesh.position.y > currentLiquidTop - 0.05) {
+          b.mesh.position.y = -1.55;
+          b.mesh.position.x = (Math.random() - 0.5) * 1.3;
         }
+        b.mesh.visible = currentLiquidRatio > 0.08;
       });
 
       sparkleRing.rotation.y = -elapsed * 0.9;
@@ -303,7 +344,7 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
       });
       renderer.dispose();
     };
-  }, [progress, mode]);
+  }, [mode]);
 
   return (
     <div
@@ -324,7 +365,7 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
           <Sparkles size={12} className="text-pink-500 animate-pulse" /> {palette.label}
         </span>
         <span className="text-[9px] text-slate-400 font-medium flex items-center gap-0.5 bg-white/70 px-2 py-0.5 rounded-full border border-pink-100">
-          <RotateCw size={10} /> Drag / Touch 360°
+          <RotateCw size={10} /> {t('bottle.dragTip', 'Drag / Touch 360°')}
         </span>
       </div>
 
@@ -338,13 +379,15 @@ export default function ThreeSkincareBottle({ progress = 0, mode = 'sore' }) {
       {/* Progress Footer */}
       <div className="w-full text-center mt-1 pt-2 border-t border-pink-100/60">
         <div className="flex items-center justify-center gap-1.5">
-          {progress >= 100 && <CheckCircle2 size={15} className="text-green-500" />}
+          {progress >= 100 && <CheckCircle2 size={15} className="text-green-500 animate-scale-in" />}
           <p className="font-display font-bold text-sm text-[#3D1F2A]">
-            {Math.round(progress)}% Skincare Liquid
+            {displayPercent}% {t('bottle.liquidTitle', 'Skincare Liquid')}
           </p>
         </div>
         <p className="text-[10px] text-slate-500 mt-0.5">
-          {progress >= 100 ? '🎉 Botol terisi penuh! Kulit kamu glowing maksimal!' : 'Isi botol naik setiap produk dicentang ✨'}
+          {progress >= 100
+            ? t('bottle.fullDone', '🎉 Botol terisi penuh! Kulit kamu glowing maksimal!')
+            : t('bottle.fillingUp', 'Isi botol naik setiap produk dicentang ✨')}
         </p>
       </div>
     </div>

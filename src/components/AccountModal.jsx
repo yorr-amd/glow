@@ -24,20 +24,23 @@ import {
   setAutoUpdateEnabled,
   APP_VERSION,
 } from '../utils/autoUpdateService';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const AVATAR_OPTIONS = ['🌸', '✨', '🍓', '🎀', '👸', '🦄', '💄', '🫧', '🌷', '💎', '🌙', '☀️'];
-const SKIN_TYPES = [
-  'Normal',
-  'Kering (Dry)',
-  'Berminyak (Oily)',
-  'Kombinasi / Sensitif',
-  'Acne-Prone',
-];
 
 export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData, onOpenOnboarding }) {
+  const { t, isEn } = useLanguage();
   const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings'
   const [formData, setFormData] = useState({ ...userProfile });
   const [isSavedToast, setIsSavedToast] = useState(false);
+
+  const skinTypes = [
+    'Normal',
+    isEn ? 'Dry' : 'Kering (Dry)',
+    isEn ? 'Oily' : 'Berminyak (Oily)',
+    isEn ? 'Combination / Sensitive' : 'Kombinasi / Sensitif',
+    'Acne-Prone',
+  ];
 
   // Sync formData when userProfile prop changes
   React.useEffect(() => {
@@ -63,15 +66,15 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
     try {
       const result = await checkForAppUpdates({ force: true });
       if (result.updateAvailable) {
-        setUpdateStatusMsg(`Pembaruan tersedia: v${result.latestVersion}! 🚀`);
+        setUpdateStatusMsg(isEn ? `Update available: v${result.latestVersion}! 🚀` : `Pembaruan tersedia: v${result.latestVersion}! 🚀`);
         if (onShowUpdate) {
           onShowUpdate(result);
         }
       } else {
-        setUpdateStatusMsg(`Aplikasi sudah versi terbaru (v${APP_VERSION}) 🌸`);
+        setUpdateStatusMsg(isEn ? `App is up to date (v${APP_VERSION}) 🌸` : `Aplikasi sudah versi terbaru (v${APP_VERSION}) 🌸`);
       }
     } catch (err) {
-      setUpdateStatusMsg(`Gagal memeriksa pembaruan: ${err.message}`);
+      setUpdateStatusMsg(isEn ? `Failed to check updates: ${err.message}` : `Gagal memeriksa pembaruan: ${err.message}`);
     } finally {
       setIsCheckingUpdate(false);
     }
@@ -103,15 +106,16 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
             </div>
             <div>
               <h2 className="font-display font-bold text-lg text-[#3D1F2A] flex items-center gap-1.5">
-                {formData.name} <Crown size={15} className="text-amber-500" />
+                {formData.name || (isEn ? 'User Profile' : 'Profil Pengguna')} <Crown size={15} className="text-amber-500" />
               </h2>
-              <p className="text-xs text-slate-500">{formData.tagline}</p>
+              <p className="text-xs text-slate-500">{formData.tagline || t('accountModal.subtitle')}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
             className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-white/80 transition-all"
+            title={t('historyModal.close')}
           >
             <X size={20} />
           </button>
@@ -127,7 +131,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                 : 'border-transparent text-slate-400 hover:text-slate-600'
             }`}
           >
-            <User size={14} /> Profil & Avatar
+            <User size={14} /> {t('accountModal.tabs.profile')}
           </button>
           <button
             onClick={() => setActiveTab('skin')}
@@ -137,7 +141,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                 : 'border-transparent text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Sparkles size={14} /> Tipe Kulit & Goals
+            <Sparkles size={14} /> {t('accountModal.tabs.skin')}
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -147,7 +151,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                 : 'border-transparent text-slate-400 hover:text-slate-600'
             }`}
           >
-            <Bell size={14} /> Preferensi
+            <Bell size={14} /> {t('accountModal.tabs.settings')}
           </button>
         </div>
 
@@ -157,7 +161,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  Pilih Avatar Ikon
+                  {t('accountModal.avatarLabel')}
                 </label>
                 <div className="grid grid-cols-6 gap-2">
                   {AVATAR_OPTIONS.map((av) => (
@@ -179,28 +183,28 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Nama Panggilan
+                  {t('accountModal.name')}
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm text-[#3D1F2A]"
-                  placeholder="Masukkan nama kamu"
+                  placeholder={isEn ? 'Enter your name' : 'Masukkan nama kamu'}
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Bio / Tagline
+                  {t('accountModal.tagline')}
                 </label>
                 <input
                   type="text"
                   value={formData.tagline}
                   onChange={(e) => handleChange('tagline', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm text-[#3D1F2A]"
-                  placeholder="Bio singkat kamu"
+                  placeholder={isEn ? 'Your short bio' : 'Bio singkat kamu'}
                 />
               </div>
 
@@ -211,12 +215,12 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                     <Flame size={20} />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#3D1F2A]">Status Streak Saat Ini</p>
-                    <p className="text-xs text-amber-700">{streak} Hari Konsisten Skincare 🔥</p>
+                    <p className="text-xs font-bold text-[#3D1F2A]">{isEn ? 'Current Streak Status' : 'Status Streak Saat Ini'}</p>
+                    <p className="text-xs text-amber-700">{streak} {t('streak.days')} {isEn ? 'Consistent Skincare' : 'Konsisten Skincare'} 🔥</p>
                   </div>
                 </div>
                 <span className="text-[10px] font-bold bg-amber-200/80 text-amber-800 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  Aktif
+                  {isEn ? 'Active' : 'Aktif'}
                 </span>
               </div>
             </div>
@@ -226,14 +230,14 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Tipe Kulit
+                  {t('accountModal.skinType')}
                 </label>
                 <select
                   value={formData.skinType}
                   onChange={(e) => handleChange('skinType', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm text-[#3D1F2A]"
                 >
-                  {SKIN_TYPES.map((type) => (
+                  {skinTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
                     </option>
@@ -243,27 +247,27 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Fokus Perawatan Utama
+                  {isEn ? 'Primary Skincare Focus' : 'Fokus Perawatan Utama'}
                 </label>
                 <input
                   type="text"
                   value={formData.primaryConcern}
                   onChange={(e) => handleChange('primaryConcern', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm text-[#3D1F2A]"
-                  placeholder="Contoh: Eksfoliasi lipatan, mencerahkan kulit"
+                  placeholder={isEn ? 'e.g. Skin barrier, hydration, brightening' : 'Contoh: Eksfoliasi lipatan, mencerahkan kulit'}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Produk Skincare Favorit
+                  {isEn ? 'Favorite Skincare Product' : 'Produk Skincare Favorit'}
                 </label>
                 <input
                   type="text"
                   value={formData.favoriteProduct}
                   onChange={(e) => handleChange('favoriteProduct', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm text-[#3D1F2A]"
-                  placeholder="Contoh: Sonik Scents (Toner Merah)"
+                  placeholder={isEn ? 'e.g. Sonik Scents Red Toner / Lip Serum' : 'Contoh: Sonik Scents (Toner Merah)'}
                 />
               </div>
             </div>
@@ -273,8 +277,8 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
             <div className="space-y-4">
               <div className="p-4 bg-white/90 rounded-2xl border border-pink-100 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-[#3D1F2A]">Notifikasi Pengingat Desktop</p>
-                  <p className="text-[11px] text-slate-500">Pop-up pengingat di pojok Windows saat jam skincare</p>
+                  <p className="text-xs font-bold text-[#3D1F2A]">{isEn ? 'Desktop Reminder Notifications' : 'Notifikasi Pengingat Desktop'}</p>
+                  <p className="text-[11px] text-slate-500">{isEn ? 'Popup reminder in Windows notification area at routine times' : 'Pop-up pengingat di pojok Windows saat jam skincare'}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -286,8 +290,8 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
 
               <div className="p-4 bg-white/90 rounded-2xl border border-pink-100 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold text-[#3D1F2A]">Efek Suara & Confetti</p>
-                  <p className="text-[11px] text-slate-500">Animasi perayaan saat rutinitas 100% selesai</p>
+                  <p className="text-xs font-bold text-[#3D1F2A]">{isEn ? 'Sound & Confetti Effects' : 'Efek Suara & Confetti'}</p>
+                  <p className="text-[11px] text-slate-500">{isEn ? 'Celebration animation when routine is 100% completed' : 'Animasi perayaan saat rutinitas 100% selesai'}</p>
                 </div>
                 <input
                   type="checkbox"
@@ -306,12 +310,12 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                     </div>
                     <div>
                       <p className="text-xs font-bold text-[#3D1F2A] flex items-center gap-1.5">
-                        <span>Pembaruan Aplikasi</span>
+                        <span>{t('accountModal.updatesSection')}</span>
                         <span className="text-[10px] font-mono bg-pink-100 text-[#9B4B62] px-1.5 py-0.5 rounded-md font-bold">
                           v{APP_VERSION}
                         </span>
                       </p>
-                      <p className="text-[11px] text-slate-500">Auto-update APK Android & Desktop</p>
+                      <p className="text-[11px] text-slate-500">{isEn ? 'Auto-update for Android & Desktop' : 'Auto-update APK Android & Desktop'}</p>
                     </div>
                   </div>
 
@@ -327,7 +331,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
 
                 <div className="flex items-center justify-between pt-1 border-t border-pink-100">
                   <p className="text-[11px] text-slate-500">
-                    {autoUpdateChecked ? 'Otomatis cek versi baru saat aplikasi dibuka' : 'Auto update dinonaktifkan'}
+                    {autoUpdateChecked ? (isEn ? 'Automatically checks for updates on startup' : 'Otomatis cek versi baru saat aplikasi dibuka') : (isEn ? 'Auto update disabled' : 'Auto update dinonaktifkan')}
                   </p>
                   <button
                     type="button"
@@ -336,7 +340,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                     className="px-3 py-1.5 rounded-xl bg-white border border-pink-200 text-[#D06885] hover:bg-pink-50 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
                   >
                     <RefreshCw size={12} className={isCheckingUpdate ? 'animate-spin' : ''} />
-                    <span>{isCheckingUpdate ? 'Memeriksa...' : 'Cek Sekarang'}</span>
+                    <span>{isCheckingUpdate ? (isEn ? 'Checking...' : 'Memeriksa...') : (isEn ? 'Check Now' : 'Cek Sekarang')}</span>
                   </button>
                 </div>
 
@@ -358,7 +362,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                     className="w-full py-2.5 rounded-xl border border-pink-300 bg-pink-50/70 hover:bg-pink-100 text-[#D06885] hover:text-[#9B4B62] text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                   >
                     <Sparkles size={14} className="text-pink-500" />
-                    <span>Mulai Ulang Wizard Setup & Onboarding 🌸</span>
+                    <span>{isEn ? 'Restart Setup Wizard & Onboarding 🌸' : 'Mulai Ulang Wizard Setup & Onboarding 🌸'}</span>
                   </button>
                 )}
                 <button
@@ -366,7 +370,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                   onClick={onLogout}
                   className="w-full py-2.5 rounded-xl border border-pink-200 text-slate-600 hover:bg-pink-50 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <LogOut size={14} /> Keluar / Kembali ke Beranda
+                  <LogOut size={14} /> {isEn ? 'Exit / Return to Home' : 'Keluar / Kembali ke Beranda'}
                 </button>
                 {onResetAllData && (
                   <button
@@ -374,7 +378,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                     onClick={onResetAllData}
                     className="w-full py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Trash2 size={14} /> Kosongkan Semua Data & Reset Akun
+                    <Trash2 size={14} /> {t('accountModal.resetDataButton')}
                   </button>
                 )}
               </div>
@@ -384,7 +388,7 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
           {/* Success toast message */}
           {isSavedToast && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl flex items-center gap-2 animate-bounce-in">
-              <CheckCircle2 size={16} /> Profil berhasil disimpan dengan indah! ✨
+              <CheckCircle2 size={16} /> {t('accountModal.saved')}
             </div>
           )}
 
@@ -395,13 +399,13 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
               onClick={onClose}
               className="px-5 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 transition-all"
             >
-              Tutup
+              {t('historyModal.close')}
             </button>
             <button
               type="submit"
               className="px-6 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-sm hover:shadow-md active:scale-95 transition-all flex items-center gap-1.5"
             >
-              <Save size={14} /> Simpan Perubahan
+              <Save size={14} /> {t('accountModal.save')}
             </button>
           </div>
         </form>
