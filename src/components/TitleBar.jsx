@@ -64,7 +64,7 @@ export default function TitleBar({ mode = 'sore' }) {
     try {
       if (window.__TAURI_INTERNALS__ || window.__TAURI__) {
         const { getCurrentWindow } = await import('@tauri-apps/api/window');
-        await getCurrentWindow().close();
+        await getCurrentWindow().hide();
       } else if (window.electronAPI?.close) {
         window.electronAPI.close();
       }
