@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { modeConfig } from '../data/skincareData';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getCurrentUser } from '../services/firebase';
+import { saveCloudDailyHistory } from '../services/firestoreService';
 
 export const DAILY_HISTORY_KEY = 'ceceyori_daily_history';
 
@@ -30,6 +32,10 @@ export const getDailyHistory = () => {
 
 export const saveDailyHistory = (history) => {
   localStorage.setItem(DAILY_HISTORY_KEY, JSON.stringify(history));
+  const user = getCurrentUser();
+  if (user?.uid) {
+    saveCloudDailyHistory(user.uid, history).catch(() => {});
+  }
 };
 
 export const recordDayActivity = (dateStr, checkedIds, allItems, mode) => {

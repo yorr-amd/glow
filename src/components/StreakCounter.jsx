@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Flame, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { getCurrentDateString, getDateDaysAgo } from '../utils/dateHelper';
+import { getCurrentUser } from '../services/firebase';
+import { saveCloudStreakHistory } from '../services/firestoreService';
 
 export const STREAK_STORAGE_KEY = 'ceceyori_streak_history';
 
@@ -53,6 +55,10 @@ export default function StreakCounter({ mode, progress, checkedCount, totalCount
         const newHistory = [...history, today];
         setHistory(newHistory);
         localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newHistory));
+        const user = getCurrentUser();
+        if (user?.uid) {
+          saveCloudStreakHistory(user.uid, newHistory).catch(() => {});
+        }
       }
     }
   }, [checkedCount]);

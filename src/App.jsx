@@ -27,6 +27,8 @@ import { getSavedUserProfile, saveUserProfile, clearUserProfile } from './data/u
 import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe, CheckCircle2, Flame, RotateCcw, Sparkles } from 'lucide-react';
 import { calculateStreak, STREAK_STORAGE_KEY } from './components/StreakCounter';
 import { useLanguage } from './i18n/LanguageContext';
+import { onAuthChange } from './services/firebase';
+import { downloadCloudDataToLocal } from './services/firestoreService';
 
 const STORAGE_KEY = 'ceceyori_checked_items';
 const TONER_STORAGE_KEY = 'ceceyori_toner_enabled';
@@ -238,6 +240,26 @@ export default function App() {
       checkAndSendRoutineReminders();
     }, 60000);
     return () => clearInterval(notifInterval);
+  }, []);
+
+  // ── Auto-Sync with Cloud Firestore on Auth Change ──
+  useEffect(() => {
+    const unsub = onAuthChange(async (user) => {
+      if (user?.uid) {
+        try {
+          const downloaded = await downloadCloudDataToLocal(user.uid);
+          if (downloaded?.profile) {
+            setUserProfile(downloaded.profile);
+          }
+          if (downloaded?.streakHistory) {
+            setCurrentStreak(calculateStreak(downloaded.streakHistory));
+          }
+        } catch (e) {
+          console.warn('Cloud sync error on startup:', e);
+        }
+      }
+    });
+    return () => unsub?.();
   }, []);
 
   // ── Save Checked Items & Mode ──

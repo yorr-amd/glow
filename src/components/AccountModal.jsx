@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   User,
@@ -16,6 +16,12 @@ import {
   RefreshCw,
   Download,
   Trash2,
+  Cloud,
+  CloudCheck,
+  LogIn,
+  UploadCloud,
+  Key,
+  AlertCircle,
 } from 'lucide-react';
 import { saveUserProfile } from '../data/userProfile';
 import {
@@ -25,14 +31,46 @@ import {
   APP_VERSION,
 } from '../utils/autoUpdateService';
 import { useLanguage } from '../i18n/LanguageContext';
+import {
+  isFirebaseConfigured,
+  getCurrentUser,
+  loginWithEmail,
+  registerWithEmail,
+  logoutUser,
+  onAuthChange,
+  saveCustomFirebaseConfig,
+} from '../services/firebase';
+import {
+  uploadLocalDataToCloud,
+  downloadCloudDataToLocal,
+} from '../services/firestoreService';
 
 const AVATAR_OPTIONS = ['🌸', '✨', '🍓', '🎀', '👸', '🦄', '💄', '🫧', '🌷', '💎', '🌙', '☀️'];
 
 export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData, onOpenOnboarding }) {
   const { t, isEn } = useLanguage();
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings' | 'cloud'
   const [formData, setFormData] = useState({ ...userProfile });
   const [isSavedToast, setIsSavedToast] = useState(false);
+
+  // Cloud Database state
+  const [firebaseUser, setFirebaseUser] = useState(() => getCurrentUser());
+  const [cloudAuthMode, setCloudAuthMode] = useState('login'); // 'login' | 'register'
+  const [cloudEmail, setCloudEmail] = useState('');
+  const [cloudPassword, setCloudPassword] = useState('');
+  const [cloudLoading, setCloudLoading] = useState(false);
+  const [cloudError, setCloudError] = useState('');
+  const [cloudToast, setCloudToast] = useState('');
+  const [showConfigInputs, setShowConfigInputs] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState('');
+  const [customProjectId, setCustomProjectId] = useState('');
+
+  useEffect(() => {
+    const unsub = onAuthChange((user) => {
+      setFirebaseUser(user);
+    });
+    return () => unsub?.();
+  }, []);
 
   const skinTypes = [
     'Normal',
@@ -77,6 +115,78 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
       setUpdateStatusMsg(isEn ? `Failed to check updates: ${err.message}` : `Gagal memeriksa pembaruan: ${err.message}`);
     } finally {
       setIsCheckingUpdate(false);
+    }
+  };
+
+  const handleCloudAuth = async (e) => {
+    e.preventDefault();
+    setCloudError('');
+    setCloudLoading(true);
+    try {
+      let user;
+      if (cloudAuthMode === 'login') {
+        user = await loginWithEmail(cloudEmail, cloudPassword);
+      } else {
+        user = await registerWithEmail(cloudEmail, cloudPassword, formData.name);
+      }
+      setFirebaseUser(user);
+      setCloudToast(t('cloudSync.syncSuccess'));
+      // Sync local data to cloud
+      await uploadLocalDataToCloud(user.uid);
+      const downloaded = await downloadCloudDataToLocal(user.uid);
+      if (downloaded?.profile) {
+        setFormData({ ...downloaded.profile });
+        onUpdateProfile?.(downloaded.profile);
+      }
+      setCloudEmail('');
+      setCloudPassword('');
+      setTimeout(() => setCloudToast(''), 3500);
+    } catch (err) {
+      setCloudError(err.message || 'Authentication error');
+    } finally {
+      setCloudLoading(false);
+    }
+  };
+
+  const handleCloudLogout = async () => {
+    await logoutUser();
+    setFirebaseUser(null);
+    setCloudToast(isEn ? 'Signed out of cloud account' : 'Berhasil keluar dari akun cloud');
+    setTimeout(() => setCloudToast(''), 2500);
+  };
+
+  const handleManualSync = async () => {
+    if (!firebaseUser) return;
+    setCloudLoading(true);
+    setCloudError('');
+    try {
+      await uploadLocalDataToCloud(firebaseUser.uid);
+      const downloaded = await downloadCloudDataToLocal(firebaseUser.uid);
+      if (downloaded?.profile) {
+        setFormData({ ...downloaded.profile });
+        onUpdateProfile?.(downloaded.profile);
+      }
+      setCloudToast(t('cloudSync.syncSuccess'));
+      setTimeout(() => setCloudToast(''), 3000);
+    } catch (err) {
+      setCloudError(t('cloudSync.syncError'));
+    } finally {
+      setCloudLoading(false);
+    }
+  };
+
+  const handleSaveCustomFirebase = (e) => {
+    e.preventDefault();
+    try {
+      saveCustomFirebaseConfig({
+        apiKey: customApiKey.trim(),
+        projectId: customProjectId.trim(),
+      });
+      setShowConfigInputs(false);
+      setCloudToast(isEn ? 'Firebase configuration saved!' : 'Konfigurasi Firebase berhasil disimpan! ✨');
+      setTimeout(() => setCloudToast(''), 3000);
+    } catch (err) {
+      setCloudError(err.message);
     }
   };
 
@@ -152,6 +262,17 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
             }`}
           >
             <Bell size={14} /> {t('accountModal.tabs.settings')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('cloud')}
+            className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 ${
+              activeTab === 'cloud'
+                ? 'border-pink-500 text-pink-600'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Cloud size={14} /> {t('cloudSync.title')}
           </button>
         </div>
 
@@ -382,6 +503,203 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                   </button>
                 )}
               </div>
+            </div>
+          )}
+
+          {activeTab === 'cloud' && (
+            <div className="space-y-4">
+              {/* Cloud Status Banner */}
+              <div className="p-4 bg-gradient-to-r from-pink-50/80 via-white to-rose-50/80 rounded-2xl border border-pink-200/80 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold ${
+                    firebaseUser ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                  }`}>
+                    <Cloud size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-bold text-[#3D1F2A]">{t('cloudSync.title')}</p>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${
+                        firebaseUser
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}>
+                        {firebaseUser ? `✓ ${t('cloudSync.connected')}` : `☁️ ${t('cloudSync.offline')}`}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {firebaseUser ? `${t('cloudSync.loggedInAs')} ${firebaseUser.email}` : t('cloudSync.guestMode')}
+                    </p>
+                  </div>
+                </div>
+
+                {firebaseUser && (
+                  <button
+                    type="button"
+                    onClick={handleManualSync}
+                    disabled={cloudLoading}
+                    className="px-3.5 py-1.5 rounded-xl bg-white border border-pink-200 text-[#D06885] hover:bg-pink-50 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    <RefreshCw size={12} className={cloudLoading ? 'animate-spin' : ''} />
+                    <span>{cloudLoading ? t('cloudSync.syncing') : t('cloudSync.syncNow')}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Cloud Feedback Toasts & Errors */}
+              {cloudToast && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-xl flex items-center gap-2 animate-bounce-in">
+                  <CheckCircle2 size={16} /> {cloudToast}
+                </div>
+              )}
+              {cloudError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                  <AlertCircle size={16} /> {cloudError}
+                </div>
+              )}
+
+              {firebaseUser ? (
+                /* Connected State: Sync details & Logout button */
+                <div className="space-y-4">
+                  <div className="p-4 bg-white/90 rounded-2xl border border-pink-100 space-y-2">
+                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      {isEn ? 'Automatic Cloud Sync' : 'Fitur Sinkronisasi Otomatis'}
+                    </p>
+                    <div className="space-y-1.5 text-xs text-slate-600">
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-500">✓</span>
+                        <span>{isEn ? 'User Profile & Preferences' : 'Profil Pengguna & Preferensi Kulit'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-500">✓</span>
+                        <span>{isEn ? 'Custom & Shelf Products Catalog' : 'Lemari Produk & Kustomisasi Skincare'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-500">✓</span>
+                        <span>{isEn ? 'Daily Skincare Journal & Checked Items' : 'Catatan Jurnal & Riwayat Checklist Harian'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-emerald-500">✓</span>
+                        <span>{isEn ? 'Consistency Streaks' : 'Streak Konsistensi Perawatan'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCloudLogout}
+                    className="w-full py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <LogOut size={14} /> {t('cloudSync.logout')}
+                  </button>
+                </div>
+              ) : (
+                /* Offline / Guest State: Login / Register Form */
+                <div className="space-y-4">
+                  <div className="p-4 bg-white/90 rounded-2xl border border-pink-100 space-y-3">
+                    <div className="flex items-center justify-between pb-2 border-b border-pink-100">
+                      <p className="text-xs font-bold text-[#3D1F2A]">
+                        {cloudAuthMode === 'login' ? t('cloudSync.loginTitle') : t('cloudSync.registerTitle')}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCloudAuthMode((prev) => (prev === 'login' ? 'register' : 'login'));
+                          setCloudError('');
+                        }}
+                        className="text-xs text-[#D06885] hover:underline font-semibold"
+                      >
+                        {cloudAuthMode === 'login' ? t('cloudSync.switchToRegister') : t('cloudSync.switchToLogin')}
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                          {t('cloudSync.email')}
+                        </label>
+                        <input
+                          type="email"
+                          value={cloudEmail}
+                          onChange={(e) => setCloudEmail(e.target.value)}
+                          placeholder={t('cloudSync.emailPlaceholder')}
+                          className="w-full px-3.5 py-2 rounded-xl border border-pink-200 text-xs text-[#3D1F2A] bg-white focus:outline-none focus:ring-2 focus:ring-pink-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                          {t('cloudSync.password')}
+                        </label>
+                        <input
+                          type="password"
+                          value={cloudPassword}
+                          onChange={(e) => setCloudPassword(e.target.value)}
+                          placeholder={t('cloudSync.passwordPlaceholder')}
+                          className="w-full px-3.5 py-2 rounded-xl border border-pink-200 text-xs text-[#3D1F2A] bg-white focus:outline-none focus:ring-2 focus:ring-pink-400"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCloudAuth}
+                        disabled={cloudLoading || !cloudEmail || !cloudPassword}
+                        className="w-full mt-2 py-2.5 rounded-xl bg-gradient-to-r from-[#D06885] to-[#9B4B62] text-white text-xs font-bold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                      >
+                        {cloudLoading ? (
+                          <RefreshCw size={13} className="animate-spin" />
+                        ) : (
+                          <LogIn size={13} />
+                        )}
+                        <span>
+                          {cloudAuthMode === 'login' ? t('cloudSync.loginButton') : t('cloudSync.registerButton')}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Manual Firebase Config Toggle */}
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowConfigInputs((prev) => !prev)}
+                      className="text-[11px] text-slate-500 hover:text-[#D06885] flex items-center gap-1 transition-colors"
+                    >
+                      <Key size={12} />
+                      <span>{t('cloudSync.configTitle')}</span>
+                    </button>
+
+                    {showConfigInputs && (
+                      <div className="mt-2 p-3.5 bg-pink-50/60 rounded-2xl border border-pink-200 space-y-2 animate-scale-in">
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
+                          {t('cloudSync.configDesc')}
+                        </p>
+                        <input
+                          type="text"
+                          value={customApiKey}
+                          onChange={(e) => setCustomApiKey(e.target.value)}
+                          placeholder={t('cloudSync.apiKey')}
+                          className="w-full px-3 py-1.5 rounded-xl border border-pink-200 text-xs bg-white text-[#3D1F2A]"
+                        />
+                        <input
+                          type="text"
+                          value={customProjectId}
+                          onChange={(e) => setCustomProjectId(e.target.value)}
+                          placeholder={t('cloudSync.projectId')}
+                          className="w-full px-3 py-1.5 rounded-xl border border-pink-200 text-xs bg-white text-[#3D1F2A]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveCustomFirebase}
+                          className="px-4 py-1.5 rounded-xl bg-[#D06885] text-white text-xs font-bold shadow-2xs hover:bg-[#9B4B62]"
+                        >
+                          {t('cloudSync.saveConfig')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

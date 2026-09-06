@@ -22,10 +22,21 @@ import {
   restoreDefaultProducts,
 } from '../data/skincareData';
 import { useLanguage } from '../i18n/LanguageContext';
+import { getCurrentUser } from '../services/firebase';
+import { saveCloudProducts } from '../services/firestoreService';
 
 export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMode }) {
   const { t, isEn } = useLanguage();
   const [activeModeTab, setActiveModeTab] = useState(routineMode || 'sore');
+
+  const syncProductsToCloud = (custom, deleted) => {
+    const user = getCurrentUser();
+    if (user?.uid) {
+      const customP = custom || JSON.parse(localStorage.getItem('ceceyori_custom_products') || '{}');
+      const deletedP = deleted || JSON.parse(localStorage.getItem('ceceyori_deleted_products') || '{}');
+      saveCloudProducts(user.uid, customP, deletedP).catch(() => {});
+    }
+  };
   const [products, setProducts] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -76,6 +87,7 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
 
     saveCustomProducts(customProducts);
     resetPAOTimer(formData.pao);
+    syncProductsToCloud(customProducts);
     setProducts(getMergedSkincareData()[activeModeTab]?.full || []);
     onUpdate?.();
     resetForm();
@@ -109,6 +121,7 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
       : `Hapus produk "${product.name}" dari Rutin ${getModeLabel(activeModeTab)}?`;
     if (!window.confirm(confirmMsg)) return;
     deleteProductFromMode(activeModeTab, product.id);
+    syncProductsToCloud();
     const updated = getMergedSkincareData();
     setProducts(updated[activeModeTab]?.full || []);
     onUpdate?.();
@@ -120,6 +133,7 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
       : `Kembalikan semua produk Rutin ${getModeLabel(activeModeTab)} ke daftar bawaan?`;
     if (!window.confirm(confirmMsg)) return;
     restoreDefaultProducts(activeModeTab);
+    syncProductsToCloud();
     const updated = getMergedSkincareData();
     setProducts(updated[activeModeTab]?.full || []);
     onUpdate?.();

@@ -1,3 +1,6 @@
+import { getCurrentUser } from '../services/firebase';
+import { saveCloudUserProfile } from '../services/firestoreService';
+
 /**
  * 🌸 User Profile State & Helper for Glow Tracker
  * Data akun pengguna default dibuat bersih (empty/clean) agar setiap pengguna
@@ -45,6 +48,10 @@ export function saveUserProfile(profile) {
       isRegistered: true,
     };
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(dataToSave));
+    const user = getCurrentUser();
+    if (user?.uid) {
+      saveCloudUserProfile(user.uid, dataToSave).catch(() => {});
+    }
     return dataToSave;
   } catch (e) {
     console.error('Failed to save user profile:', e);
