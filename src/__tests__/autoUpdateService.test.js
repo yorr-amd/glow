@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { isNewerVersion, formatFileSize, getAppPlatform } from '../utils/autoUpdateService';
 
 describe('autoUpdateService', () => {
@@ -9,12 +9,16 @@ describe('autoUpdateService', () => {
       expect(isNewerVersion('1.1.1', '1.1.0')).toBe(true);
       expect(isNewerVersion('v1.2.0', '1.1.0')).toBe(true);
       expect(isNewerVersion('v1.2.0', 'v1.1.0')).toBe(true);
+      expect(isNewerVersion('1.1.3.1', '1.1.3.0')).toBe(true);
+      expect(isNewerVersion('1.1.4', '1.1.3.0')).toBe(true);
     });
 
     it('returns false when remote version is equal or lower', () => {
       expect(isNewerVersion('1.1.0', '1.1.0')).toBe(false);
       expect(isNewerVersion('1.0.9', '1.1.0')).toBe(false);
       expect(isNewerVersion('0.9.0', '1.0.0')).toBe(false);
+      expect(isNewerVersion('1.1.3.0', '1.1.3.0')).toBe(false);
+      expect(isNewerVersion('1.1.3', '1.1.3.0')).toBe(false);
       expect(isNewerVersion(null, '1.1.0')).toBe(false);
       expect(isNewerVersion('1.1.0', null)).toBe(false);
     });

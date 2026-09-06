@@ -101,7 +101,7 @@ export default function TitleBar({ mode = 'sore' }) {
           {t('appTitle', 'Glow ✦ Skincare Companion')}
         </span>
         <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-md bg-pink-50 border border-pink-200 text-[#D06885] pointer-events-none">
-          v1.1.3
+          {t('version', 'v1.1.3.0')}
         </span>
       </div>
 
