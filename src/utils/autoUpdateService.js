@@ -4,7 +4,7 @@
  * pengunduhan serta pemasangan otomatis (1-Tap Auto Update) di Android APK & Web.
  */
 
-export const APP_VERSION = '1.1.3.0';
+export const APP_VERSION = '1.1.4';
 export const GITHUB_REPO = 'yorr-amd/glow';
 
 const AUTO_UPDATE_STORAGE_KEY = 'glow_auto_update_enabled';
@@ -21,8 +21,8 @@ const AUTO_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 export function isNewerVersion(remote, local) {
   if (!remote || !local) return false;
 
-  const cleanRemote = remote.replace(/^v/i, '').trim();
-  const cleanLocal = local.replace(/^v/i, '').trim();
+  const cleanRemote = remote.replace(/^v/i, '').trim().split('.').slice(0, 3).join('.');
+  const cleanLocal = local.replace(/^v/i, '').trim().split('.').slice(0, 3).join('.');
 
   const rParts = cleanRemote.split('.').map((n) => parseInt(n, 10) || 0);
   const lParts = cleanLocal.split('.').map((n) => parseInt(n, 10) || 0);
