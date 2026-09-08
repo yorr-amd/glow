@@ -4,7 +4,10 @@ import { useLanguage } from '../i18n/LanguageContext';
 
 export default function ExfoliationCalendar({ tonerEnabled = false }) {
   const { t } = useLanguage();
-  const currentDayIndex = new Date().getDay();
+  
+  const logicalDate = new Date();
+  if (logicalDate.getHours() < 5) logicalDate.setDate(logicalDate.getDate() - 1);
+  const currentDayIndex = logicalDate.getDay();
   const isScheduledToday = isExfoliatingDay();
 
   const weekDays = [

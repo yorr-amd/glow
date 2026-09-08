@@ -170,6 +170,12 @@ export default function App() {
   // ── State: Checked items ──
   const [checkedItems, setCheckedItems] = useState(() => {
     try {
+      const today = getCurrentDateString();
+      const savedDate = localStorage.getItem(`${STORAGE_KEY}_date`);
+      if (savedDate !== today) {
+        localStorage.setItem(`${STORAGE_KEY}_date`, today);
+        return {};
+      }
       const saved = localStorage.getItem(STORAGE_KEY);
       return saved ? JSON.parse(saved) : {};
     } catch {
@@ -264,6 +270,8 @@ export default function App() {
 
   // ── Save Checked Items & Mode ──
   useEffect(() => {
+    const today = getCurrentDateString();
+    localStorage.setItem(`${STORAGE_KEY}_date`, today);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedItems));
   }, [checkedItems]);
 
@@ -350,6 +358,12 @@ export default function App() {
           origin: { y: 0.6 },
           colors: ['#D06885', '#9B4B62', '#FBBF24', '#F472B6'],
         });
+        // Auto-complete the day if not yet marked
+        if (!todayCompleted) {
+          const today = getCurrentDateString();
+          localStorage.setItem(COMPLETION_STORAGE_KEY, today);
+          setTodayCompleted(true);
+        }
       }
 
       return newChecked;

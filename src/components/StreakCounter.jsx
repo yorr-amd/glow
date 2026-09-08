@@ -47,9 +47,9 @@ export default function StreakCounter({ mode, progress, checkedCount, totalCount
   });
   const [showHistory, setShowHistory] = useState(false);
 
-  // Auto-record hari ini ke history kalau sudah ada item yang dicentang
+  // Auto-record hari ini ke history HANYA ketika todayCompleted bernilai true (rutinitas 100% atau user klik Selesaiin)
   useEffect(() => {
-    if (checkedCount > 0) {
+    if (todayCompleted) {
       const today = getCurrentDateString();
       if (!history.includes(today)) {
         const newHistory = [...history, today];
@@ -61,7 +61,7 @@ export default function StreakCounter({ mode, progress, checkedCount, totalCount
         }
       }
     }
-  }, [checkedCount]);
+  }, [todayCompleted]);
 
   const streak = calculateStreak(history);
   const isStreakAlive = streak > 0;
@@ -70,12 +70,7 @@ export default function StreakCounter({ mode, progress, checkedCount, totalCount
   const isTodayRecorded = history.includes(today);
 
   const handleMarkComplete = () => {
-    if (onComplete) onComplete();
-    if (!isTodayRecorded) {
-      const newHistory = [...history, today];
-      setHistory(newHistory);
-      localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newHistory));
-    }
+    if (onComplete) onComplete(); // This triggers todayCompleted = true in App.jsx
   };
 
   const getStreakDisplay = () => {

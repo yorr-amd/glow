@@ -1,12 +1,21 @@
 export const isExfoliatingDay = (date = new Date()) => {
-  const day = date.getDay();
-  return day === 3 || day === 6;
+  // Jika jam masih di bawah 05:00 pagi, anggap masih bagian dari hari sebelumnya (Malam)
+  const logicalDate = new Date(date);
+  if (logicalDate.getHours() < 5) {
+    logicalDate.setDate(logicalDate.getDate() - 1);
+  }
+  const day = logicalDate.getDay();
+  return day === 3 || day === 6; // Rabu (3) & Sabtu (6)
 };
 
 export const getCurrentDateString = (date = new Date()) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const logicalDate = new Date(date);
+  if (logicalDate.getHours() < 5) {
+    logicalDate.setDate(logicalDate.getDate() - 1);
+  }
+  const year = logicalDate.getFullYear();
+  const month = String(logicalDate.getMonth() + 1).padStart(2, '0');
+  const day = String(logicalDate.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
