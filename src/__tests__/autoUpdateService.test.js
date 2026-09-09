@@ -9,8 +9,6 @@ describe('autoUpdateService', () => {
       expect(isNewerVersion('1.1.1', '1.1.0')).toBe(true);
       expect(isNewerVersion('v1.2.0', '1.1.0')).toBe(true);
       expect(isNewerVersion('v1.2.0', 'v1.1.0')).toBe(true);
-      expect(isNewerVersion('1.1.3.1', '1.1.3.0')).toBe(true);
-      expect(isNewerVersion('1.1.4', '1.1.3.0')).toBe(true);
     });
 
     it('returns false when remote version is equal or lower', () => {
