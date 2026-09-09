@@ -41,6 +41,7 @@ async fn run_in_app_update(app: tauri::AppHandle, url: String) -> Result<String,
     #[cfg(target_os = "windows")]
     {
         std::process::Command::new(&setup_path)
+            .args(["/S", "/UPDATE", "/R"])
             .spawn()
             .map_err(|e| format!("Gagal menjalankan installer: {}", e))?;
 
