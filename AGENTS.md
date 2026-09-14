@@ -62,7 +62,7 @@ bg-white/70 backdrop-blur-md border border-white/40 rounded-2xl p-5 shadow-sm ho
 ---
 
 ## ⚠️ 5. Strict Product & Business Rules for AI
-1. **Toner Merah (Sonik Scents)**:
+1. **Toner Eksfoliasi (Safety Lock)**:
    * Hanya aktif dan boleh dibuka di hari **Rabu & Sabtu malam**.
    * Di luar hari tersebut, toggle dan checklist toner wajib **terkunci (Disabled 🔒)**.
 2. **Streak Counter**:
@@ -73,6 +73,8 @@ bg-white/70 backdrop-blur-md border border-white/40 rounded-2xl p-5 shadow-sm ho
 4. **Standalone App (Tauri 2)**:
    * Jangan buat app bergantung pada server `localhost`. Semua file harus ter-bundle mandiri dalam `dist/`.
    * Hindari penumpukan cache debug rust `target/debug` untuk menghemat ruang disk user.
+5. **Wajib Tes Lokal Sebelum Build/Rilis**:
+   * Sebelum melakukan rilis atau kompilasi build, wajib lakukan pengujian lokal terlebih dahulu menggunakan perintah `npm run tauri dev`. Pastikan aplikasi berjalan lancar di lingkungan lokal tanpa error.
 
 ---
 
