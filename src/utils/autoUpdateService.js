@@ -4,7 +4,7 @@
  * pengunduhan serta pemasangan otomatis (1-Tap Auto Update) di Android APK & Web.
  */
 
-export const APP_VERSION = '1.1.6';
+export const APP_VERSION = '1.1.7';
 export const GITHUB_REPO = 'yorr-amd/glow';
 
 const AUTO_UPDATE_STORAGE_KEY = 'glow_auto_update_enabled';
@@ -156,7 +156,7 @@ export async function checkForAppUpdates({ force = false, silent = false } = {})
     const remoteVersion = remoteTag.replace(/^v/i, '').trim();
     const hasNewVersion = isNewerVersion(remoteVersion, APP_VERSION);
 
-    // Cari aset APK dan Windows Installer dari daftar aset rilis
+    // Cari aset APK, Windows Installer, dan Linux AppImage/deb/rpm dari daftar aset rilis
     const assets = Array.isArray(data.assets) ? data.assets : [];
     const apkAsset = assets.find((a) => a.name && a.name.toLowerCase().endsWith('.apk'));
     const winAsset = assets.find(
@@ -166,8 +166,13 @@ export async function checkForAppUpdates({ force = false, silent = false } = {})
           a.name.toLowerCase().endsWith('.exe') ||
           a.name.toLowerCase().endsWith('.msi'))
     );
+    const linuxAppImageAsset = assets.find((a) => a.name && a.name.toLowerCase().endsWith('.appimage'));
+    const linuxDebAsset = assets.find((a) => a.name && a.name.toLowerCase().endsWith('.deb'));
+    const linuxRpmAsset = assets.find((a) => a.name && a.name.toLowerCase().endsWith('.rpm'));
+    const linuxAsset = linuxAppImageAsset || linuxDebAsset || linuxRpmAsset;
 
     const platform = getAppPlatform();
+    const isLinuxOS = typeof navigator !== 'undefined' && /linux|x11/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent);
 
     const updateInfo = {
       updateAvailable: hasNewVersion,
@@ -178,12 +183,16 @@ export async function checkForAppUpdates({ force = false, silent = false } = {})
       releaseNotes: data.body || '',
       publishedAt: data.published_at,
       platform,
+      isLinux: isLinuxOS,
       apkUrl: apkAsset ? apkAsset.browser_download_url : null,
       apkSize: apkAsset ? apkAsset.size : null,
       apkName: apkAsset ? apkAsset.name : `Glow-v${remoteVersion || 'latest'}.apk`,
       winUrl: winAsset ? winAsset.browser_download_url : null,
       winSize: winAsset ? winAsset.size : null,
       winName: winAsset ? winAsset.name : `Glow-Setup-${remoteVersion || 'latest'}.exe`,
+      linuxUrl: linuxAsset ? linuxAsset.browser_download_url : null,
+      linuxSize: linuxAsset ? linuxAsset.size : null,
+      linuxName: linuxAsset ? linuxAsset.name : `Glow-${remoteVersion || 'latest'}.AppImage`,
       releaseUrl: data.html_url || `https://github.com/${GITHUB_REPO}/releases`,
     };
 
@@ -258,7 +267,19 @@ export async function triggerAutoInstall(updateInfo, onProgress) {
       console.warn('[Glow AutoUpdate] Tauri native updater gagal/fallback ke installer exe:', tauriErr);
     }
 
-    // Fallback Desktop: Gunakan in-app direct background downloader via Tauri command
+    // Jika berjalan di sistem operasi Linux
+    if (updateInfo.isLinux) {
+      const linuxDownloadUrl = updateInfo.linuxUrl || updateInfo.releaseUrl;
+      const linuxFileName = updateInfo.linuxName || `Glow-${updateInfo.latestVersion || 'latest'}.AppImage`;
+      downloadInBrowser(linuxDownloadUrl, linuxFileName);
+      return {
+        success: true,
+        mode: 'linux_package_download',
+        message: `Mengunduh paket Linux (${linuxFileName}). Jalankan file setelah selesai untuk memperbarui.`,
+      };
+    }
+
+    // Fallback Desktop Windows: Gunakan in-app direct background downloader via Tauri command
     const winDownloadUrl = updateInfo.winUrl || updateInfo.releaseUrl;
     if (typeof window !== 'undefined' && (window.__TAURI_INTERNALS__ || window.__TAURI__)) {
       try {

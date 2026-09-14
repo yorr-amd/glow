@@ -7,39 +7,39 @@ use tauri::{
 
 #[tauri::command]
 async fn run_in_app_update(app: tauri::AppHandle, url: String) -> Result<String, String> {
-    let temp_dir = std::env::temp_dir();
-    let setup_path = temp_dir.join("Glow_Update_Setup.exe");
-    let setup_str = setup_path.to_str().ok_or("Invalid temp path")?;
-
-    // Download via curl.exe (built-in on Windows 10 & 11)
-    let mut downloaded = false;
-    if let Ok(status) = std::process::Command::new("curl.exe")
-        .args(["-L", "-s", "-S", "-o", setup_str, &url])
-        .status()
-    {
-        if status.success() && setup_path.exists() && setup_path.metadata().map(|m| m.len() > 100_000).unwrap_or(false) {
-            downloaded = true;
-        }
-    }
-
-    // Fallback: PowerShell WebClient
-    if !downloaded {
-        let ps_cmd = format!(
-            "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('{}', '{}')",
-            url, setup_str
-        );
-        let status = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", &ps_cmd])
-            .status()
-            .map_err(|e| format!("Gagal mengunduh installer: {}", e))?;
-
-        if !status.success() {
-            return Err("Pengunduhan installer gagal".to_string());
-        }
-    }
-
     #[cfg(target_os = "windows")]
     {
+        let temp_dir = std::env::temp_dir();
+        let setup_path = temp_dir.join("Glow_Update_Setup.exe");
+        let setup_str = setup_path.to_str().ok_or("Invalid temp path")?;
+
+        // Download via curl.exe (built-in on Windows 10 & 11)
+        let mut downloaded = false;
+        if let Ok(status) = std::process::Command::new("curl.exe")
+            .args(["-L", "-s", "-S", "-o", setup_str, &url])
+            .status()
+        {
+            if status.success() && setup_path.exists() && setup_path.metadata().map(|m| m.len() > 100_000).unwrap_or(false) {
+                downloaded = true;
+            }
+        }
+
+        // Fallback: PowerShell WebClient
+        if !downloaded {
+            let ps_cmd = format!(
+                "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('{}', '{}')",
+                url, setup_str
+            );
+            let status = std::process::Command::new("powershell")
+                .args(["-NoProfile", "-Command", &ps_cmd])
+                .status()
+                .map_err(|e| format!("Gagal mengunduh installer: {}", e))?;
+
+            if !status.success() {
+                return Err("Pengunduhan installer gagal".to_string());
+            }
+        }
+
         std::process::Command::new(&setup_path)
             .args(["/S", "/UPDATE", "/R"])
             .spawn()
@@ -50,9 +50,16 @@ async fn run_in_app_update(app: tauri::AppHandle, url: String) -> Result<String,
             std::thread::sleep(std::time::Duration::from_millis(600));
             app_clone.exit(0);
         });
+
+        Ok("Pembaruan berhasil diunduh dan sedang dipasang!".to_string())
     }
 
-    Ok("Pembaruan berhasil diunduh dan sedang dipasang!".to_string())
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = app;
+        let _ = url;
+        Ok("Pembaruan sistem desktop Linux dapat diunduh melalui GitHub Releases atau package manager.".to_string())
+    }
 }
 
 fn show_or_create_main_window<R: tauri::Runtime>(app: &tauri::AppHandle<R>) {

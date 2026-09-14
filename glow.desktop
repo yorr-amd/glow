@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Glow ✦ Skincare Companion
+GenericName=Skincare Tracker
+Comment=Personal skincare routine tracker untuk glowing skin setiap hari
+Exec=/home/yori/Documents/PROJECT/glow/start-linux.sh
+Icon=/home/yori/Documents/PROJECT/glow/src-tauri/icons/icon.png
+Terminal=false
+Type=Application
+Categories=Utility;Health;
+StartupWMClass=glow
+Keywords=skincare;glow;routine;tracker;
+Actions=Build;
+
+[Desktop Action Build]
+Name=Build Linux App
+Exec=/home/yori/Documents/PROJECT/glow/build-linux.sh
+Terminal=true
