@@ -1,4 +1,4 @@
-﻿import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { defaultSkincareData } from '../data/skincareData';
 
 /**
@@ -12,7 +12,7 @@ function getActiveItems({ mode, routineMode, tonerEnabled, isExfoliatingDay }) {
     ? baseRoutine.full.filter((item) => (baseRoutine.quick || []).includes(item.id) || item.isEssential)
     : [...baseRoutine.full];
 
-  // 2. Strict Toner Merah (Sonik Scents) condition: Rabu & Sabtu malam saja
+  // 2. Strict Toner Eksfoliasi condition: Rabu & Sabtu malam saja
   const canUseToner = mode === 'malam' && isExfoliatingDay && tonerEnabled;
   if (canUseToner) {
     const tonerItem = baseRoutine.full.find((i) => i.id === 'm6' || i.id === 'toner' || i.isConditional);
@@ -66,8 +66,8 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
     });
   });
 
-  describe('Strict Toner Merah Rules (AGENTS.md Rule 1 & Bug P1 Fix)', () => {
-    it('LOCKS and EXCLUDES Toner Merah on non-exfoliating nights (e.g. Friday night)', () => {
+  describe('Strict Exfoliating Toner Rules (AGENTS.md Rule 1 & Bug P1 Fix)', () => {
+    it('LOCKS and EXCLUDES Exfoliating Toner on non-exfoliating nights (e.g. Friday night)', () => {
       const items = getActiveItems({
         mode: 'malam',
         routineMode: 'full',
@@ -75,11 +75,11 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
         isExfoliatingDay: false, // Not Wed or Sat
       });
 
-      const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Toner Merah'));
+      const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Exfoliating Toner'));
       expect(hasToner).toBe(false);
     });
 
-    it('LOCKS and EXCLUDES Toner Merah when user toggle is OFF (even on Wed/Sat night)', () => {
+    it('LOCKS and EXCLUDES Exfoliating Toner when user toggle is OFF (even on Wed/Sat night)', () => {
       const items = getActiveItems({
         mode: 'malam',
         routineMode: 'full',
@@ -87,11 +87,11 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
         isExfoliatingDay: true, // Wed/Sat
       });
 
-      const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Toner Merah'));
+      const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Exfoliating Toner'));
       expect(hasToner).toBe(false);
     });
 
-    it('LOCKS and EXCLUDES Toner Merah during daytime (Pagi, Siang, Sore)', () => {
+    it('LOCKS and EXCLUDES Exfoliating Toner during daytime (Pagi, Siang, Sore)', () => {
       for (const mode of ['pagi', 'siang', 'sore']) {
         const items = getActiveItems({
           mode,
@@ -100,12 +100,12 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
           isExfoliatingDay: true,
         });
 
-        const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Toner Merah'));
+        const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Exfoliating Toner'));
         expect(hasToner).toBe(false);
       }
     });
 
-    it('ACTIVATES Toner Merah ONLY on Wed/Sat night when toggle is ON', () => {
+    it('ACTIVATES Exfoliating Toner ONLY on Wed/Sat night when toggle is ON', () => {
       const items = getActiveItems({
         mode: 'malam',
         routineMode: 'full',
@@ -115,7 +115,7 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
 
       const tonerItem = items.find((i) => i.id === 'm6');
       expect(tonerItem).toBeDefined();
-      expect(tonerItem.name).toBe('Sonik Scents Toner Merah');
+      expect(tonerItem.name).toBe('Exfoliating Toner');
     });
   });
 });

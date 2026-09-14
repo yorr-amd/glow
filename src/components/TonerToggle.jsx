@@ -29,13 +29,13 @@ export default function TonerToggle({ enabled, onToggle }) {
           <div>
             <div className="flex items-center gap-2">
               <h3 className={`font-semibold text-sm ${isScheduledToday ? 'text-[#3D1F2A]' : 'text-slate-400'}`}>
-                {t('toner.title', 'Toner Merah')}
+                {t('toner.title', 'Toner Eksfoliasi')}
               </h3>
               <span className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-100">
                 {isEn ? '2x / Week' : '2x / Minggu'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">Sonik Scents ({isEn ? 'Fold Exfoliation' : 'Eksfoliasi Lipatan'})</p>
+            <p className="text-xs text-slate-400 mt-0.5">{isEn ? 'Exfoliating Care (Fold Exfoliation)' : 'Perawatan Eksfoliasi (Eksfoliasi Lipatan)'}</p>
           </div>
         </div>
 

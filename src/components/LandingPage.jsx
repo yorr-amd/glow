@@ -146,12 +146,12 @@ export default function LandingPage({ mode = 'sore', userProfile, onEnterApp }) 
                     <span className="flex items-center gap-2">
                       <Droplets size={14} className="text-sky-300" /> {t('landing.coreProducts', 'Produk Utama')}
                     </span>
-                    <span className="font-semibold">Vaseline, Pond's, Originote</span>
+                    <span className="font-semibold">Cleanser, Moisturizer, SPF</span>
                   </div>
 
                   <div className="flex items-center justify-between p-2.5 rounded-xl bg-white/10">
                     <span className="flex items-center gap-2">
-                      <ShieldCheck size={14} className="text-rose-300" /> {t('landing.redToner', 'Toner Merah')}
+                      <ShieldCheck size={14} className="text-rose-300" /> {t('landing.redToner', 'Toner Eksfoliasi')}
                     </span>
                     <span className="font-semibold">{t('landing.redTonerSchedule', 'Rabu & Sabtu Malam 🔒')}</span>
                   </div>

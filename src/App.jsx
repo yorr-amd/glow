@@ -24,19 +24,26 @@ import { getMergedSkincareData, modeConfig } from './data/skincareData';
 import { isExfoliatingDay, getCurrentDateString } from './utils/dateHelper';
 import { initNotificationService, checkAndSendRoutineReminders } from './utils/notificationService';
 import { getSavedUserProfile, saveUserProfile, clearUserProfile } from './data/userProfile';
+import {
+  migrateLegacyDataIfNeeded,
+  getActiveAccountId,
+  setActiveAccountId,
+  getUserData,
+  setUserData,
+} from './services/db';
 import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe, CheckCircle2, Flame, RotateCcw, Sparkles } from 'lucide-react';
 import { calculateStreak, STREAK_STORAGE_KEY } from './components/StreakCounter';
 import { useLanguage } from './i18n/LanguageContext';
 import { onAuthChange } from './services/firebase';
 import { downloadCloudDataToLocal } from './services/firestoreService';
 
-const STORAGE_KEY = 'ceceyori_checked_items';
-const TONER_STORAGE_KEY = 'ceceyori_toner_enabled';
-const COMPLETION_STORAGE_KEY = 'ceceyori_daily_completion';
-const MODE_STORAGE_KEY = 'ceceyori_mode';
-const QUICK_MODE_STORAGE_KEY = 'ceceyori_quick_mode';
-const ORDER_STORAGE_KEY = 'ceceyori_routine_order';
-const VIEW_STATE_KEY = 'ceceyori_view_state';
+const STORAGE_KEY = 'glow_checked_items';
+const TONER_STORAGE_KEY = 'glow_toner_enabled';
+const COMPLETION_STORAGE_KEY = 'glow_daily_completion';
+const MODE_STORAGE_KEY = 'glow_mode';
+const QUICK_MODE_STORAGE_KEY = 'glow_quick_mode';
+const ORDER_STORAGE_KEY = 'glow_routine_order';
+const VIEW_STATE_KEY = 'glow_view_state';
 
 const MODES = ['pagi', 'siang', 'sore', 'malam'];
 
@@ -112,20 +119,24 @@ function LiveClock({ mode }) {
 export default function App() {
   const { lang, toggleLang, t, isEn } = useLanguage();
 
-  // ── Auto-Clean Residual Demo Data for Fresh User Experience ──
-  const [freshChecked] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const FRESH_KEY = 'glow_fresh_v113_clean';
-      if (!localStorage.getItem(FRESH_KEY)) {
-        const saved = getSavedUserProfile();
-        if (!saved || !saved.isRegistered || !saved.name) {
-          clearUserProfile();
-        }
-        localStorage.setItem(FRESH_KEY, 'true');
+  // ── Auto-Migration & Active User Loading ──
+  useEffect(() => {
+    migrateLegacyDataIfNeeded().then((migrated) => {
+      if (migrated) {
+        setUserProfile(migrated);
+        setActiveAccountId(migrated.id);
+        const userChecked = getUserData(migrated.id, 'checked_items', {});
+        setCheckedItems(userChecked);
+        const userStreaks = getUserData(migrated.id, 'streak_history', []);
+        setCurrentStreak(calculateStreak(userStreaks));
+        const userRoutineMode = getUserData(migrated.id, 'quick_mode', 'full');
+        setRoutineMode(userRoutineMode);
+        const userOrder = getUserData(migrated.id, 'routine_order', {});
+        setCustomOrder(userOrder);
+        setViewState('dashboard');
       }
-    }
-    return true;
-  });
+    });
+  }, []);
 
   // ── State: User Profile & Modals ──
   const [userProfile, setUserProfile] = useState(() => getSavedUserProfile());
@@ -133,7 +144,6 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   // ── State: Navigation View ('landing' | 'auth' | 'dashboard') ──
-  // Pengguna baru selalu diarahkan ke Landing Page untuk membuat profil mereka sendiri
   const [viewState, setViewState] = useState(() => {
     const saved = getSavedUserProfile();
     if (!saved || !saved.isRegistered || !saved.name) {
@@ -152,6 +162,10 @@ export default function App() {
 
   // ── State: Quick/Full Routine ──
   const [routineMode, setRoutineMode] = useState(() => {
+    const activeId = getActiveAccountId();
+    if (activeId) {
+      return getUserData(activeId, 'quick_mode', 'full');
+    }
     const saved = localStorage.getItem(QUICK_MODE_STORAGE_KEY);
     return saved ?? 'full';
   });
@@ -163,6 +177,11 @@ export default function App() {
   // ── State: Toner (Hanya aktif Rabu & Sabtu malam) ──
   const [tonerEnabled, setTonerEnabled] = useState(() => {
     if (!isExfoliatingDay()) return false;
+    const activeId = getActiveAccountId();
+    if (activeId) {
+      const val = getUserData(activeId, 'toner_enabled', null);
+      if (val !== null) return val;
+    }
     const saved = localStorage.getItem(TONER_STORAGE_KEY);
     return saved !== null ? JSON.parse(saved) : true;
   });
@@ -170,6 +189,10 @@ export default function App() {
   // ── State: Checked items ──
   const [checkedItems, setCheckedItems] = useState(() => {
     try {
+      const activeId = getActiveAccountId();
+      if (activeId) {
+        return getUserData(activeId, 'checked_items', {});
+      }
       const today = getCurrentDateString();
       const savedDate = localStorage.getItem(`${STORAGE_KEY}_date`);
       if (savedDate !== today) {
@@ -193,7 +216,10 @@ export default function App() {
   // ── State: Live Streak Calculation ──
   const [currentStreak, setCurrentStreak] = useState(() => {
     try {
-      const history = JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
+      const activeId = getActiveAccountId();
+      const history = activeId
+        ? getUserData(activeId, 'streak_history', [])
+        : JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
       return calculateStreak(history);
     } catch {
       return 0;
@@ -202,12 +228,15 @@ export default function App() {
 
   useEffect(() => {
     try {
-      const history = JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
+      const activeId = userProfile?.id || getActiveAccountId();
+      const history = activeId
+        ? getUserData(activeId, 'streak_history', [])
+        : JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
       setCurrentStreak(calculateStreak(history));
     } catch {
       // Ignore streak storage read error
     }
-  }, [checkedItems, todayCompleted]);
+  }, [checkedItems, todayCompleted, userProfile?.id]);
 
   // ── State: Modals ──
   const [showProductShelf, setShowProductShelf] = useState(false);
@@ -273,19 +302,35 @@ export default function App() {
     const today = getCurrentDateString();
     localStorage.setItem(`${STORAGE_KEY}_date`, today);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedItems));
-  }, [checkedItems]);
+    const activeId = userProfile?.id || getActiveAccountId();
+    if (activeId) {
+      setUserData(activeId, 'checked_items', checkedItems);
+    }
+  }, [checkedItems, userProfile?.id]);
 
   useEffect(() => {
     localStorage.setItem(TONER_STORAGE_KEY, JSON.stringify(tonerEnabled));
-  }, [tonerEnabled]);
+    const activeId = userProfile?.id || getActiveAccountId();
+    if (activeId) {
+      setUserData(activeId, 'toner_enabled', tonerEnabled);
+    }
+  }, [tonerEnabled, userProfile?.id]);
 
   useEffect(() => {
     localStorage.setItem(QUICK_MODE_STORAGE_KEY, routineMode);
-  }, [routineMode]);
+    const activeId = userProfile?.id || getActiveAccountId();
+    if (activeId) {
+      setUserData(activeId, 'quick_mode', routineMode);
+    }
+  }, [routineMode, userProfile?.id]);
 
   useEffect(() => {
     localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(customOrder));
-  }, [customOrder]);
+    const activeId = userProfile?.id || getActiveAccountId();
+    if (activeId) {
+      setUserData(activeId, 'routine_order', customOrder);
+    }
+  }, [customOrder, userProfile?.id]);
 
   // ── Auto Update Check on App Launch ──
   useEffect(() => {
@@ -305,18 +350,18 @@ export default function App() {
   }, []);
 
   // ── Get Active Skincare Data ──
-  const skincareData = getMergedSkincareData();
+  const skincareData = getMergedSkincareData(userProfile?.id);
   const baseRoutine = skincareData[mode] || skincareData.sore;
   const currentConfig = modeConfig[mode] || modeConfig.sore;
 
-  // Filter items (Quick vs Full, Toner Merah conditions)
+  // Filter items (Quick vs Full, Exfoliating Toner conditions)
   const getActiveItems = useCallback(() => {
     // 1. Quick mode vs Full mode item mapping
     let items = routineMode === 'quick'
       ? baseRoutine.full.filter((item) => (baseRoutine.quick || []).includes(item.id) || item.isEssential)
       : [...baseRoutine.full];
 
-    // 2. Strict Toner Merah (Sonik Scents) condition: Rabu & Sabtu malam saja
+    // 2. Strict Exfoliating Toner condition: Rabu & Sabtu malam saja
     const canUseToner = mode === 'malam' && isExfoliatingDay() && tonerEnabled;
     if (canUseToner) {
       const tonerItem = baseRoutine.full.find((i) => i.id === 'm6' || i.id === 'toner' || i.isConditional);
@@ -347,7 +392,7 @@ export default function App() {
       const newChecked = { ...prev, [mode]: updated };
 
       if (updated.length > 0) {
-        recordDayActivity(getCurrentDateString(), updated, activeItems, mode);
+        recordDayActivity(getCurrentDateString(), updated, activeItems, mode, userProfile?.id);
       }
 
       // 100% completion celebration
@@ -388,6 +433,15 @@ export default function App() {
     const today = getCurrentDateString();
     localStorage.setItem(COMPLETION_STORAGE_KEY, today);
     setTodayCompleted(true);
+    const activeId = userProfile?.id || getActiveAccountId();
+    if (activeId) {
+      const history = getUserData(activeId, 'streak_history', []);
+      if (!history.includes(today)) {
+        const newHist = [...history, today];
+        setUserData(activeId, 'streak_history', newHist);
+        setCurrentStreak(calculateStreak(newHist));
+      }
+    }
     confetti({
       particleCount: 120,
       spread: 90,
@@ -396,7 +450,7 @@ export default function App() {
     });
   };
 
-  // ── Handle Navigation & Auth ──
+  // ── Handle Navigation & Multi-Account ──
   const handleEnterDashboard = () => {
     if (!userProfile || !userProfile.isRegistered || !userProfile.name) {
       setShowAuthModal(true);
@@ -406,7 +460,33 @@ export default function App() {
     }
   };
 
+  const handleSwitchAccount = (account) => {
+    setActiveAccountId(account.id);
+    setUserProfile(account);
+    // Load that account's isolated data
+    const userChecked = getUserData(account.id, 'checked_items', {});
+    setCheckedItems(userChecked);
+    const userStreaks = getUserData(account.id, 'streak_history', []);
+    setCurrentStreak(calculateStreak(userStreaks));
+    const userRoutineMode = getUserData(account.id, 'quick_mode', 'full');
+    setRoutineMode(userRoutineMode);
+    const userOrder = getUserData(account.id, 'routine_order', {});
+    setCustomOrder(userOrder);
+    const userToner = getUserData(account.id, 'toner_enabled', null);
+    if (userToner !== null) setTonerEnabled(userToner);
+    setShowAccountModal(false);
+    setViewState('dashboard');
+    localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
+  };
+
+  const handleAddNewAccount = () => {
+    setShowAccountModal(false);
+    setShowAuthModal(true);
+  };
+
   const handleLogout = () => {
+    setActiveAccountId(null);
+    setUserProfile(null);
     setShowAccountModal(false);
     setViewState('landing');
     localStorage.setItem(VIEW_STATE_KEY, 'landing');
@@ -414,10 +494,10 @@ export default function App() {
 
   const handleResetAllData = () => {
     const confirmMsg = isEn
-      ? 'Are you sure you want to delete all personal profile data and reset all skincare logs? This will clean up the application like a fresh install.'
-      : 'Apakah Anda yakin ingin menghapus semua data profil dan mengosongkan riwayat rutinitas? Tindakan ini akan membuat aplikasi bersih seperti baru dipasang.';
+      ? 'Are you sure you want to delete this account and reset its skincare logs?'
+      : 'Apakah Anda yakin ingin menghapus akun ini beserta seluruh riwayat skincare-nya?';
     if (window.confirm(confirmMsg)) {
-      clearUserProfile();
+      clearUserProfile(userProfile?.id);
       setUserProfile(null);
       setCheckedItems({});
       setTodayCompleted(false);
@@ -429,6 +509,7 @@ export default function App() {
 
   const handleLoginSuccess = (updatedProfile) => {
     setUserProfile(updatedProfile);
+    setActiveAccountId(updatedProfile.id);
     saveUserProfile(updatedProfile);
     setShowAuthModal(false);
     setViewState('dashboard');
@@ -772,6 +853,7 @@ export default function App() {
             totalCount={activeItems.length}
             todayCompleted={todayCompleted}
             onComplete={handleCompleteDay}
+            userId={userProfile?.id}
           />
         </aside>
       </main>
@@ -854,6 +936,8 @@ export default function App() {
           setShowAccountModal(false);
           setShowAuthModal(true);
         }}
+        onSwitchAccount={handleSwitchAccount}
+        onAddNewAccount={handleAddNewAccount}
       />
 
       {/* Onboarding Setup Wizard Modal */}
@@ -877,12 +961,14 @@ export default function App() {
         onClose={() => setShowProductShelf(false)}
         onUpdate={() => setCheckedItems((prev) => ({ ...prev }))}
         routineMode={mode}
+        userId={userProfile?.id}
       />
 
       {/* Daily History Modal */}
       <DailyHistoryModal
         isOpen={showDailyHistory}
         onClose={() => setShowDailyHistory(false)}
+        userId={userProfile?.id}
       />
 
     </div>

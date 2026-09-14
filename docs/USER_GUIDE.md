@@ -40,12 +40,12 @@ Aplikasi secara cerdas membaca jam di laptop kamu:
 
 ---
 
-## 4. Jadwal Toner Merah (Rabu & Sabtu)
-Toner Merah (Sonik Scents) khusus digunakan untuk eksfoliasi 2x seminggu:
+## 4. Jadwal Toner Eksfoliasi (Rabu & Sabtu)
+Toner Eksfoliasi khusus digunakan untuk eksfoliasi 2x seminggu:
 * **Hari Biasa (Senin, Selasa, Kamis, Jumat, Minggu)**:
   * Tombol switch Toner otomatis **terkunci (Disabled 🔒)** dengan status: *"🔒 Toner dikunci — Jadwal: Rabu & Sabtu malam saja"*.
 * **Hari Rabu & Sabtu Malam**:
-  * Tombol switch Toner otomatis **terbuka dan aktif ✨**. Produk Toner Merah akan muncul di checklist malam untuk kamu centang.
+  * Tombol switch Toner otomatis **terbuka dan aktif ✨**. Produk Toner Eksfoliasi akan muncul di checklist malam untuk kamu centang.
 
 ---
 
@@ -69,16 +69,24 @@ Klik tombol **"📦 Shelf"** di pojok kanan atas untuk membuka manajer produk:
 Klik tombol **"📅 Riwayat"** (atau tekan tombol <kbd>H</kbd>):
 * Melihat kalender dan daftar tanggal di mana kamu sudah menyelesaikan rutinitas.
 * Menambahkan **Catatan Kondisi Kulit & Mood** untuk memantau perubahan wajah.
-* **Export Backup JSON**: Tombol untuk mengunduh salinan data jika kamu ingin mencadangkannya.
 
 ---
 
-## 8. Shortcut Keyboard
+## 8. Multi-Akun & Cadangan Data (Backup/Restore JSON)
+Klik ikon Profil / Akun di pojok kiri atas untuk membuka **Pengaturan Akun**:
+* **Ganti Akun**: Pilih tab **"Akun"** untuk beralih antar profil secara instan.
+* **➕ Buat Akun Baru**: Daftarkan nama baru, tipe kulit, dan target skincare. Setiap akun memiliki data checklist, produk shelf, dan streak yang terpisah mandiri.
+* **Ekspor Data (.json)**: Simpan seluruh riwayat akun dan koleksi produkmu ke dalam file cadangan JSON.
+* **Impor Data (.json)**: Pulihkan atau pindahkan akunmu dari file JSON ke perangkat lain secara mudah dan aman.
+
+---
+
+## 9. Shortcut Keyboard
 
 | Tombol | Fungsi |
 |---|---|
 | <kbd>Space</kbd> | Centang produk berikutnya secara otomatis |
 | <kbd>1</kbd> s.d. <kbd>6</kbd> | Centang produk baris 1 s.d. 6 |
 | <kbd>M</kbd> | Ganti mode waktu (Pagi/Siang/Sore/Malam) |
-| <kbd>T</kbd> | Toggle Toner Merah (di hari Rabu/Sabtu) |
+| <kbd>T</kbd> | Toggle Toner Eksfoliasi (di hari Rabu/Sabtu malam) |
 | <kbd>H</kbd> | Buka/Tutup Riwayat Harian |

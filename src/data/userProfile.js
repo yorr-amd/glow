@@ -1,33 +1,41 @@
 import { getCurrentUser } from '../services/firebase';
 import { saveCloudUserProfile } from '../services/firestoreService';
+import {
+  getActiveAccountId,
+  setActiveAccountId,
+  getCachedAccounts,
+  createAccount,
+  updateAccount,
+  deleteAccount,
+  exportAccountData,
+  importAccountData,
+  DEFAULT_PROFILE,
+} from '../services/db';
 
 /**
  * 🌸 User Profile State & Helper for Glow Tracker
- * Data akun pengguna default dibuat bersih (empty/clean) agar setiap pengguna
- * baru dapat mendaftarkan profil dan namanya sendiri tanpa membawa data lama.
+ * Mengelola profil pengguna yang terhubung langsung ke GlowDatabase.
  */
-export const PROFILE_STORAGE_KEY = 'ceceyori_user_profile';
+export const PROFILE_STORAGE_KEY = 'glow_user_profile';
 
 export const DEFAULT_USER_PROFILE = {
-  name: '',
-  avatar: '🌸',
-  tagline: 'Skincare Routine & Glowing Journey ✨',
-  skinType: 'Normal',
-  skinTone: 'Natural Glow',
-  primaryConcern: 'Menjaga Skin Barrier Sehat & Kulit Terhidrasi',
-  skinGoals: ['Skin Barrier Sehat', 'Tekstur Halus', 'Cerah Alami', 'Bebas Kusam'],
-  favoriteProduct: '',
-  memberSince: '',
+  ...DEFAULT_PROFILE,
   isRegistered: false,
-  notificationsEnabled: true,
-  dailyReminderMorning: '07:00',
-  dailyReminderNight: '19:00',
-  soundEffectsEnabled: true,
 };
 
-export function getSavedUserProfile() {
+export function getSavedUserProfile(targetUserId = null) {
   try {
-    const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
+    const activeId = targetUserId || getActiveAccountId();
+    if (activeId) {
+      const accounts = getCachedAccounts();
+      const found = accounts.find((acc) => acc.id === activeId);
+      if (found && found.name && found.name.trim()) {
+        return { ...DEFAULT_USER_PROFILE, ...found, isRegistered: true };
+      }
+    }
+
+    // Fallback legacy local storage check
+    const saved = localStorage.getItem('ceceyori_user_profile') || localStorage.getItem(PROFILE_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && typeof parsed === 'object' && parsed.name && parsed.name.trim()) {
@@ -40,59 +48,50 @@ export function getSavedUserProfile() {
   return null;
 }
 
-export function saveUserProfile(profile) {
+export function saveUserProfile(profile, targetUserId = null) {
   try {
-    const dataToSave = {
-      ...DEFAULT_USER_PROFILE,
-      ...profile,
-      isRegistered: true,
-    };
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(dataToSave));
+    const activeId = targetUserId || profile.id || getActiveAccountId();
+
+    let savedData;
+    if (activeId) {
+      savedData = {
+        ...DEFAULT_USER_PROFILE,
+        ...profile,
+        id: activeId,
+        isRegistered: true,
+      };
+      updateAccount(activeId, savedData);
+    } else {
+      savedData = {
+        ...DEFAULT_USER_PROFILE,
+        ...profile,
+        isRegistered: true,
+      };
+      createAccount(savedData);
+    }
+
+    // Cloud Firestore synchronization if logged in
     const user = getCurrentUser();
     if (user?.uid) {
-      saveCloudUserProfile(user.uid, dataToSave).catch(() => {});
+      saveCloudUserProfile(user.uid, savedData).catch(() => {});
     }
-    return dataToSave;
+
+    return savedData;
   } catch (e) {
     console.error('Failed to save user profile:', e);
   }
 }
 
 /**
- * Mengosongkan seluruh data pengguna (profil, checklist, riwayat, streak)
- * agar aplikasi kembali bersih seperti baru dipasang pertama kali.
+ * Menghapus akun pengguna tertentu atau membersihkan session aktif
  */
-export function clearUserProfile() {
+export async function clearUserProfile(targetUserId = null) {
   try {
-    const keysToRemove = [
-      PROFILE_STORAGE_KEY,
-      'ceceyori_view_state',
-      'ceceyori_checked_items',
-      'ceceyori_streak_history',
-      'ceceyori_daily_history',
-      'ceceyori_daily_completion',
-      'ceceyori_custom_products',
-      'ceceyori_deleted_products',
-      'ceceyori_routine_order',
-      'ceceyori_quick_mode',
-      'ceceyori_toner_enabled',
-      'ceceyori_notified_today',
-      'ceceyori_glow_vibes_count',
-      'glow_auto_update_enabled',
-      'glow_last_update_check',
-      'glow_dismissed_update_version',
-    ];
-
-    if (typeof localStorage !== 'undefined') {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const k = localStorage.key(i);
-        if (k && (k.startsWith('ceceyori_') || k.startsWith('glow_'))) {
-          if (!keysToRemove.includes(k) && k !== 'glow_fresh_v113_reset') {
-            keysToRemove.push(k);
-          }
-        }
-      }
-      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    const activeId = targetUserId || getActiveAccountId();
+    if (activeId) {
+      await deleteAccount(activeId);
+    } else {
+      setActiveAccountId(null);
     }
     return true;
   } catch (e) {
@@ -100,3 +99,5 @@ export function clearUserProfile() {
     return false;
   }
 }
+
+export { exportAccountData, importAccountData };

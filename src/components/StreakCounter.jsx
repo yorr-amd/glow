@@ -3,8 +3,37 @@ import { Flame, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { getCurrentDateString, getDateDaysAgo } from '../utils/dateHelper';
 import { getCurrentUser } from '../services/firebase';
 import { saveCloudStreakHistory } from '../services/firestoreService';
+import { getActiveAccountId, getUserData, setUserData } from '../services/db';
 
-export const STREAK_STORAGE_KEY = 'ceceyori_streak_history';
+export const STREAK_STORAGE_KEY = 'glow_streak_history';
+
+export function getStreakHistory(userId = null) {
+  const activeId = userId || getActiveAccountId();
+  if (activeId) {
+    return getUserData(activeId, 'streak_history', []);
+  }
+  try {
+    return JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || localStorage.getItem('ceceyori_streak_history') || '[]');
+  } catch {
+    return [];
+  }
+}
+
+export function saveStreakHistory(streaks, userId = null) {
+  const activeId = userId || getActiveAccountId();
+  if (activeId) {
+    setUserData(activeId, 'streak_history', streaks);
+  }
+  try {
+    localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(streaks));
+  } catch {
+    // Ignore storage quota error
+  }
+  const user = getCurrentUser();
+  if (user?.uid) {
+    saveCloudStreakHistory(user.uid, streaks).catch(() => {});
+  }
+}
 
 export function calculateStreak(history) {
   if (!history || history.length === 0) return 0;
@@ -39,13 +68,14 @@ export function calculateStreak(history) {
   return streak;
 }
 
-export default function StreakCounter({ mode, progress, checkedCount, totalCount, todayCompleted, onComplete }) {
-  const [history, setHistory] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
-    } catch { return []; }
-  });
+export default function StreakCounter({ mode, progress, checkedCount, totalCount, todayCompleted, onComplete, userId = null }) {
+  const [history, setHistory] = useState(() => getStreakHistory(userId));
   const [showHistory, setShowHistory] = useState(false);
+
+  // Re-sync history if active user changes
+  useEffect(() => {
+    setHistory(getStreakHistory(userId));
+  }, [userId]);
 
   // Auto-record hari ini ke history HANYA ketika todayCompleted bernilai true (rutinitas 100% atau user klik Selesaiin)
   useEffect(() => {
@@ -54,14 +84,10 @@ export default function StreakCounter({ mode, progress, checkedCount, totalCount
       if (!history.includes(today)) {
         const newHistory = [...history, today];
         setHistory(newHistory);
-        localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(newHistory));
-        const user = getCurrentUser();
-        if (user?.uid) {
-          saveCloudStreakHistory(user.uid, newHistory).catch(() => {});
-        }
+        saveStreakHistory(newHistory, userId);
       }
     }
-  }, [todayCompleted]);
+  }, [todayCompleted, userId]);
 
   const streak = calculateStreak(history);
   const isStreakAlive = streak > 0;

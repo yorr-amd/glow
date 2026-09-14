@@ -21,7 +21,7 @@ const quotes = {
   sore: [
     { text: "Muka tetep glowing walau aktivitas seharian ✨", text_en: "Skin stays glowing even after a full productive day ✨", emoji: "✨" },
     { text: "Skincare sore = investasi buat nongkrong nanti 🏍️", text_en: "Evening skincare = the best prep before hanging out 🏍️", emoji: "🏍️" },
-    { text: "SPF 20 di Vaseline Soft & Glow, jaga kulit dari UV sore! ☀️", text_en: "SPF in Vaseline Soft & Glow shields you from late afternoon UV! ☀️", emoji: "☀️" },
+    { text: "Sunscreen & body lotion, jaga kulit dari paparan UV sore! ☀️", text_en: "Sunscreen & body lotion shield you from late afternoon UV! ☀️", emoji: "☀️" },
     { text: "Cuci muka dulu baru santai, deal? 🤝", text_en: "Cleanse your face first, then relax. Deal? 🤝", emoji: "🛁" },
     { text: "Moisturizer adem biar wajah glowing pas ketemu temen-temen 😎", text_en: "Soothing moisturizer keeps your face glowing when meeting friends 😎", emoji: "🧴" },
     { text: "Glowing skin is the best accessory ✨", text_en: "Glowing skin is the best accessory ✨", emoji: "✨" },
@@ -29,11 +29,11 @@ const quotes = {
   malam: [
     { text: "Double cleansing dulu baru rebahan! 🛌", text_en: "Double cleanse first, then dive into bed! 🛌", emoji: "🛌" },
     { text: "Micellar water angkat debu jalanan, bersih tuntas sampai pori 🫧", text_en: "Micellar water sweeps away city dust deep down into pores 🫧", emoji: "🫧" },
-    { text: "Toner Merah (Rabu & Sabtu) buat eksfoliasi lipatan ✨", text_en: "Red Toner (Wed & Sat) for gentle body fold exfoliation ✨", emoji: "🧪" },
+    { text: "Toner Eksfoliasi (Rabu & Sabtu) bersihkan sel kulit mati ✨", text_en: "Exfoliating Toner (Wed & Sat) clears away dull dead skin cells ✨", emoji: "🧪" },
     { text: "Lip Mask oles tebal, besok bibir lembut kenyal 💋", text_en: "Generous lip mask tonight = soft, supple lips tomorrow 💋", emoji: "💋" },
-    { text: "Vaseline Soft & Glow = kunci kelembapan badan sebelum tidur 🔑", text_en: "Soft & Glow body lotion = lock in nighttime hydration 🔑", emoji: "🔑" },
+    { text: "Body lotion malam = kunci hidrasi kulit badan sebelum tidur 🔑", text_en: "Night body lotion = locks in body skin hydration before sleep 🔑", emoji: "🔑" },
     { text: "Skincare malam = self love terbaik setelah seharian lelah 💖", text_en: "Nighttime skincare is the purest form of evening self-care 💖", emoji: "💖" },
-    { text: "The Originote Gel malam biar besok bangun wajah plump 🌙", text_en: "Originote Gel overnight so you wake up to plump, bouncy skin 🌙", emoji: "🌙" },
+    { text: "Moisturizer malam biar besok bangun wajah lembap & plump 🌙", text_en: "Night moisturizer so you wake up to plump, bouncy skin 🌙", emoji: "🌙" },
   ],
   general: [
     { text: "Konsisten skincare = investasi masa depan 💰", text_en: "Consistent skincare is an investment in your future self 💰", emoji: "💰" },

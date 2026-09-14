@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   User,
@@ -22,8 +22,20 @@ import {
   UploadCloud,
   Key,
   AlertCircle,
+  Users,
+  UserPlus,
+  FileJson,
+  Upload,
 } from 'lucide-react';
 import { saveUserProfile } from '../data/userProfile';
+import {
+  getAllAccounts,
+  getCachedAccounts,
+  deleteAccount,
+  setActiveAccountId,
+  exportAccountData,
+  importAccountData,
+} from '../services/db';
 import {
   checkForAppUpdates,
   isAutoUpdateEnabled,
@@ -47,11 +59,26 @@ import {
 
 const AVATAR_OPTIONS = ['🌸', '✨', '🍓', '🎀', '👸', '🦄', '💄', '🫧', '🌷', '💎', '🌙', '☀️'];
 
-export default function AccountModal({ isOpen, onClose, userProfile, onUpdateProfile, onLogout, streak = 1, onShowUpdate, onResetAllData, onOpenOnboarding }) {
+export default function AccountModal({
+  isOpen,
+  onClose,
+  userProfile,
+  onUpdateProfile,
+  onLogout,
+  streak = 1,
+  onShowUpdate,
+  onResetAllData,
+  onOpenOnboarding,
+  onSwitchAccount,
+  onAddNewAccount,
+}) {
   const { t, isEn } = useLanguage();
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'settings' | 'cloud'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' | 'skin' | 'accounts' | 'settings' | 'cloud'
   const [formData, setFormData] = useState({ ...userProfile });
   const [isSavedToast, setIsSavedToast] = useState(false);
+  const [accountsList, setAccountsList] = useState(() => getCachedAccounts());
+  const [backupToast, setBackupToast] = useState('');
+  const fileInputRef = useRef(null);
 
   // Cloud Database state
   const [firebaseUser, setFirebaseUser] = useState(() => getCurrentUser());
@@ -86,6 +113,78 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
       setFormData({ ...userProfile });
     }
   }, [userProfile]);
+
+  useEffect(() => {
+    if (isOpen) {
+      getAllAccounts().then((accs) => {
+        if (Array.isArray(accs) && accs.length > 0) {
+          setAccountsList(accs);
+        }
+      });
+    }
+  }, [isOpen, activeTab]);
+
+  const handleExportBackup = async () => {
+    try {
+      const targetId = formData?.id || userProfile?.id;
+      const jsonStr = await exportAccountData(targetId);
+      if (!jsonStr) throw new Error(isEn ? 'No account data found to export.' : 'Tidak ada data akun yang ditemukan.');
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Glow_Backup_${formData.name || 'Account'}_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setBackupToast(isEn ? 'Backup file exported successfully! 🌸' : 'Berkas cadangan berhasil diekspor! 🌸');
+      setTimeout(() => setBackupToast(''), 3000);
+    } catch (err) {
+      setBackupToast(err.message);
+      setTimeout(() => setBackupToast(''), 3000);
+    }
+  };
+
+  const handleImportBackup = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = await importAccountData(text);
+      const updated = await getAllAccounts();
+      setAccountsList(updated);
+      setBackupToast(isEn ? `Account "${imported.name}" imported successfully! 🌸` : `Akun "${imported.name}" berhasil dipulihkan! 🌸`);
+      if (onSwitchAccount) {
+        onSwitchAccount(imported);
+      }
+      setTimeout(() => setBackupToast(''), 3500);
+    } catch (err) {
+      setBackupToast(isEn ? `Import failed: ${err.message}` : `Gagal memulihkan: ${err.message}`);
+      setTimeout(() => setBackupToast(''), 3500);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDeleteAccountItem = async (accId, accName) => {
+    const confirmText = isEn
+      ? `Are you sure you want to delete account "${accName}" and all its skincare data?`
+      : `Yakin ingin menghapus akun "${accName}" beserta seluruh data skincare dan riwayatnya?`;
+    if (!window.confirm(confirmText)) return;
+
+    await deleteAccount(accId);
+    const remaining = await getAllAccounts();
+    setAccountsList(remaining);
+
+    if (accId === (formData?.id || userProfile?.id)) {
+      if (remaining.length > 0) {
+        if (onSwitchAccount) onSwitchAccount(remaining[0]);
+      } else {
+        if (onLogout) onLogout();
+        onClose();
+      }
+    }
+  };
 
   // Auto update settings state
   const [autoUpdateChecked, setAutoUpdateChecked] = useState(isAutoUpdateEnabled());
@@ -254,6 +353,17 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
             <Sparkles size={14} /> {t('accountModal.tabs.skin')}
           </button>
           <button
+            type="button"
+            onClick={() => setActiveTab('accounts')}
+            className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 ${
+              activeTab === 'accounts'
+                ? 'border-pink-500 text-pink-600'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            <Users size={14} /> {isEn ? 'Accounts' : 'Akun'}
+          </button>
+          <button
             onClick={() => setActiveTab('settings')}
             className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 ${
               activeTab === 'settings'
@@ -388,9 +498,168 @@ export default function AccountModal({ isOpen, onClose, userProfile, onUpdatePro
                   value={formData.favoriteProduct}
                   onChange={(e) => handleChange('favoriteProduct', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm text-[#3D1F2A]"
-                  placeholder={isEn ? 'e.g. Sonik Scents Red Toner / Lip Serum' : 'Contoh: Sonik Scents (Toner Merah)'}
+                  placeholder={isEn ? 'e.g. Exfoliating Toner / Hydrating Serum' : 'Contoh: Toner Eksfoliasi / Serum Niacinamide'}
                 />
               </div>
+            </div>
+          )}
+
+          {activeTab === 'accounts' && (
+            <div className="space-y-5 animate-fade-in">
+              {/* Toast message for backup */}
+              {backupToast && (
+                <div className="p-3 bg-pink-50 border border-pink-200 text-pink-700 text-xs font-semibold rounded-xl flex items-center gap-2 animate-bounce-in">
+                  <Sparkles size={16} /> {backupToast}
+                </div>
+              )}
+
+              {/* Section: Saved Accounts */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold text-[#3D1F2A] uppercase tracking-wider">
+                      {isEn ? 'Saved Accounts in Local Database' : 'Daftar Akun di Database Perangkat'}
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      {isEn ? 'Every user has their own independent skincare shelf & streaks.' : 'Tiap pengguna memiliki rak produk, riwayat, dan streak tersendiri.'}
+                    </p>
+                  </div>
+                  {onAddNewAccount && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onAddNewAccount();
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-pink-500 text-white text-xs font-bold hover:bg-pink-600 transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                    >
+                      <UserPlus size={13} />
+                      <span>{isEn ? '+ New Account' : '+ Buat Akun Baru'}</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {accountsList.map((acc) => {
+                    const isCurrentActive = acc.id === (formData.id || userProfile?.id);
+                    return (
+                      <div
+                        key={acc.id}
+                        className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                          isCurrentActive
+                            ? 'bg-pink-50/90 border-pink-300 ring-1 ring-pink-300/40 shadow-xs'
+                            : 'bg-white/80 border-pink-100 hover:border-pink-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-pink-400 to-rose-400 flex items-center justify-center text-xl flex-shrink-0 shadow-xs border border-white">
+                            {acc.avatar || '🌸'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-xs text-[#3D1F2A] truncate">{acc.name}</p>
+                              {isCurrentActive && (
+                                <span className="text-[9px] font-bold bg-pink-200 text-pink-800 px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                                  {isEn ? 'Active' : 'Aktif'}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-400 truncate">
+                              {acc.skinType || 'Normal'} • {acc.tagline || 'Skincare Routine ✨'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {!isCurrentActive ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveAccountId(acc.id);
+                                if (onSwitchAccount) onSwitchAccount(acc);
+                                onClose();
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-white border border-pink-200 text-xs font-bold text-pink-600 hover:bg-pink-50 transition-all cursor-pointer shadow-2xs"
+                            >
+                              {isEn ? 'Switch' : 'Beralih'}
+                            </button>
+                          ) : (
+                            <span className="text-xs text-pink-500 font-semibold px-2 py-1">
+                              ✓ {isEn ? 'Current' : 'Sedang Dipakai'}
+                            </span>
+                          )}
+
+                          {accountsList.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAccountItem(acc.id, acc.name)}
+                              className="p-1.5 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                              title={isEn ? 'Delete account' : 'Hapus akun'}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Section: Backup & Transfer (.json) */}
+              <div className="p-4 bg-white/90 rounded-2xl border border-pink-100 space-y-3">
+                <div>
+                  <h4 className="text-xs font-bold text-[#3D1F2A] flex items-center gap-1.5">
+                    <FileJson size={15} className="text-pink-500" />
+                    <span>{isEn ? 'Account Data Backup & Transfer' : 'Cadangkan & Pindahkan Data Akun'}</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    {isEn
+                      ? 'Export your account and skincare history to a .json file for safe backup or migration to another laptop.'
+                      : 'Ekspor data akun dan seluruh riwayat skincare ke berkas .json untuk backup aman atau saat pindah laptop.'}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleExportBackup}
+                    className="px-4 py-2 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  >
+                    <Download size={13} />
+                    <span>{isEn ? 'Export Data (.json)' : 'Ekspor Data (.json)'}</span>
+                  </button>
+
+                  <label className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                    <Upload size={13} />
+                    <span>{isEn ? 'Import Data (.json)' : 'Impor Data (.json)'}</span>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      onChange={handleImportBackup}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Logout Button */}
+              {onLogout && (
+                <div className="pt-2 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onLogout();
+                    }}
+                    className="px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    <LogOut size={13} />
+                    <span>{isEn ? 'Log Out of Account' : 'Keluar dari Akun'}</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

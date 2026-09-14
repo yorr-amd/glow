@@ -57,9 +57,9 @@ The hero visual and atmospheric sky dynamically transition based on real device 
 
 ---
 
-### 3. 🔒 Exfoliation Safety Lock (Red Toner - Sonik Scents)
+### 3. 🔒 Exfoliation Safety Lock (Exfoliating Toner)
 * Designed to safeguard skin barrier integrity against over-exfoliation.
-* The Red Toner checklist item **only unlocks on Wednesday and Saturday nights**. On all other days, the toggle remains strictly locked (Disabled 🔒).
+* The Exfoliating Toner checklist item **only unlocks on Wednesday and Saturday nights**. On all other days, the toggle remains strictly locked (Disabled 🔒).
 
 ---
 
@@ -69,24 +69,30 @@ The hero visual and atmospheric sky dynamically transition based on real device 
 
 ---
 
-### 5. 🌐 Full Bilingual Support (EN & ID)
+### 5. 👥 Multi-Account & Isolated Database (IndexedDB)
+* Built-in multi-user profile switching with isolated routines, custom products, streak counters, and daily journals for each account.
+* **Backup & Migration**: 1-click JSON account export (`.json`) and import to seamlessly transfer routines across devices without data loss.
+
+---
+
+### 6. 🌐 Full Bilingual Support (EN & ID)
 * Instant in-app language switcher (`EN | ID`) directly accessible from the navigation bar.
 * Complete localization covering routine titles, category badges, product guides, usage tips, and calendar modals.
 
 ---
 
-### 6. 📅 Skincare Journal & 🧴 Product Shelf
+### 7. 📅 Skincare Journal & 🧴 Product Shelf
 * **30-Day Skincare Journal**: Consistency metrics, time-session badges, and personalized daily skin condition logs.
 * **Product Shelf**: Virtual cosmetic shelf to add, edit, or customize products with PAO (*Period After Opening*) monitoring.
 
 ---
 
-### 7. 🛡️ 100% Offline-First & Private
+### 8. 🛡️ 100% Offline-First & Private
 * Zero third-party tracking. All profiles, journals, and routine data are saved natively on your machine via local encrypted store.
 
 ---
 
-### 8. 🔄 In-App Auto-Update (1-Tap Mobile Update)
+### 9. 🔄 In-App Auto-Update (1-Tap Mobile Update)
 * Automatic version detection via GitHub Releases API on app startup.
 * 1-Tap background APK downloading via Android DownloadManager and instant package installation prompt without manual GitHub browsing.
 * In-app toggle and manual "Check for Updates" button in Settings/Profile.
@@ -181,9 +187,9 @@ Visual langit pada header berganti secara otomatis mengikuti jam lokal laptop ka
 
 ---
 
-### 3. 🔒 Kunci Pengaman Eksfoliasi (Toner Merah - Sonik Scents)
+### 3. 🔒 Kunci Pengaman Eksfoliasi (Toner Eksfoliasi)
 * Menjaga kesehatan *skin barrier* agar terhindar dari iritasi dan *over-exfoliation*.
-* Checklist dan toggle Toner Merah **hanya aktif dan dapat dibuka pada hari Rabu & Sabtu malam**. Di luar hari tersebut, fitur terkunci rapat (Disabled 🔒).
+* Checklist dan toggle Toner Eksfoliasi **hanya aktif dan dapat dibuka pada hari Rabu & Sabtu malam**. Di luar hari tersebut, fitur terkunci rapat (Disabled 🔒).
 
 ---
 
@@ -193,24 +199,30 @@ Visual langit pada header berganti secara otomatis mengikuti jam lokal laptop ka
 
 ---
 
-### 5. 🌐 Dukungan 2 Bahasa (Indonesia & Inggris)
+### 5. 👥 Multi-Akun & Database Terisolasi (IndexedDB)
+* Mendukung banyak akun pengguna sekaligus pada satu aplikasi. Setiap akun memiliki rutinitas, koleksi produk, streak counter, dan riwayat harian masing-masing yang terisolasi aman.
+* **Cadangkan & Pulihkan (.json)**: Fitur ekspor dan impor profil akun dalam format JSON untuk memudahkan transfer riwayat perawatan kulit antar perangkat.
+
+---
+
+### 6. 🌐 Dukungan 2 Bahasa (Indonesia & Inggris)
 * Tombol pengubah bahasa cepat (`ID | EN`) langsung tersedia di navbar atas.
 * Seluruh deskripsi produk, tips pemakaian, dialog modal, dan navigasi diterjemahkan secara rapi.
 
 ---
 
-### 6. 📅 Jurnal Riwayat & 🧴 Lemari Skincare (Product Shelf)
+### 7. 📅 Jurnal Riwayat & 🧴 Lemari Skincare (Product Shelf)
 * **Riwayat Skincare 30 Hari**: Rekap persentase konsistensi, badge sesi waktu, dan form catatan kondisi kulit harian.
 * **Product Shelf**: Rak rias kosmetik virtual untuk menambah, mengedit, menghapus, serta mengatur masa simpan PAO (*Period After Opening*) pada setiap produk skincare.
 
 ---
 
-### 7. 🛡️ 100% Offline-First & Privasi Terjamin
+### 8. 🛡️ 100% Offline-First & Privasi Terjamin
 * Semua data riwayat, catatan kulit, dan preferensi tersimpan secara privat di penyimpanan lokal native pengguna.
 
 ---
 
-### 8. 🔄 Pembaruan Otomatis (1-Tap Auto Update)
+### 9. 🔄 Pembaruan Otomatis (1-Tap Auto Update)
 * Deteksi versi baru secara otomatis melalui GitHub Releases API setiap aplikasi dibuka.
 * Pengunduhan APK di latar belakang melalui Android DownloadManager dan peluncuran jendela pemasangan otomatis (*1-tap install*) tanpa repot membuka browser atau web GitHub.
 * Toggle pengaturan auto-update dan tombol "Periksa Pembaruan Sekarang" di menu Profil/Pengaturan.

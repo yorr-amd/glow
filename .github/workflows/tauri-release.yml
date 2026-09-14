@@ -60,7 +60,7 @@ jobs:
             - 🌐 **Full Bilingual Support**: Added instant language toggle (**ID 🇮🇩 | EN 🇬🇧**) in the top navigation bar. Routine cards, tooltips, safety locks, and live clocks update reactively without reloading.
             - ☀️ **4-Phase 3D Celestial Atmosphere**: Real-time astronomical sky visualization powered by Three.js (Morning sun flare, Midday volumetric clouds, Sunset rose-gold horizon, and Night violet moon with 120+ twinkling stars & shooting stars).
             - 🧴 **3D Procedural Serum Bottle**: Interactive 3D glass serum bottle with real-time liquid level and micro-bubbles that adapt to your routine completion percentage.
-            - 🔒 **Exfoliation Safety Lock**: Red Toner (Sonik Scents) strictly unlocks only on Wednesday & Saturday nights to safeguard your skin barrier.
+            - 🔒 **Exfoliation Safety Lock**: Exfoliating Toner strictly unlocks only on Wednesday & Saturday nights to safeguard your skin barrier.
             - 🔥 **Consecutive Streak Counter**: Real-time streak tracking with visual fire glow for unbroken consistency.
             - 📅 **Skincare History Journal & Product Shelf**: 30-day recap journal and virtual vanity shelf with PAO (Period After Opening) tracking.
             - 🔄 **In-App Auto Update**: Desktop & Android automatic update checker and 1-tap updater.

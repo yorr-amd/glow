@@ -25,15 +25,15 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { getCurrentUser } from '../services/firebase';
 import { saveCloudProducts } from '../services/firestoreService';
 
-export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMode }) {
+export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMode, userId = null }) {
   const { t, isEn } = useLanguage();
   const [activeModeTab, setActiveModeTab] = useState(routineMode || 'sore');
 
   const syncProductsToCloud = (custom, deleted) => {
     const user = getCurrentUser();
     if (user?.uid) {
-      const customP = custom || JSON.parse(localStorage.getItem('ceceyori_custom_products') || '{}');
-      const deletedP = deleted || JSON.parse(localStorage.getItem('ceceyori_deleted_products') || '{}');
+      const customP = custom || getCustomProducts(userId);
+      const deletedP = deleted || getDeletedProducts(userId);
       saveCloudProducts(user.uid, customP, deletedP).catch(() => {});
     }
   };
@@ -56,22 +56,22 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
 
   useEffect(() => {
     if (isOpen) {
-      const merged = getMergedSkincareData();
+      const merged = getMergedSkincareData(userId);
       setProducts(merged[activeModeTab]?.full || []);
     }
-  }, [isOpen, activeModeTab]);
+  }, [isOpen, activeModeTab, userId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const customProducts = JSON.parse(localStorage.getItem('ceceyori_custom_products') || '{}');
-    const deletedProducts = JSON.parse(localStorage.getItem('ceceyori_deleted_products') || '{}');
+    const customProducts = getCustomProducts(userId);
+    const deletedProducts = getDeletedProducts(userId);
 
     if (!customProducts[activeModeTab]) customProducts[activeModeTab] = [];
 
     if (editingId) {
       if (deletedProducts[activeModeTab]) {
         deletedProducts[activeModeTab] = deletedProducts[activeModeTab].filter((id) => id !== editingId);
-        localStorage.setItem('ceceyori_deleted_products', JSON.stringify(deletedProducts));
+        saveDeletedProducts(deletedProducts, userId);
       }
 
       const index = customProducts[activeModeTab].findIndex((p) => p.id === editingId);
@@ -85,10 +85,10 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
       customProducts[activeModeTab].push({ ...formData, id: newId, isCustom: true });
     }
 
-    saveCustomProducts(customProducts);
-    resetPAOTimer(formData.pao);
-    syncProductsToCloud(customProducts);
-    setProducts(getMergedSkincareData()[activeModeTab]?.full || []);
+    saveCustomProducts(customProducts, userId);
+    resetPAOTimer(formData.pao, userId);
+    syncProductsToCloud(customProducts, deletedProducts);
+    setProducts(getMergedSkincareData(userId)[activeModeTab]?.full || []);
     onUpdate?.();
     resetForm();
   };
@@ -120,9 +120,9 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
       ? `Delete "${product.name}" from ${getModeLabel(activeModeTab)} routine?`
       : `Hapus produk "${product.name}" dari Rutin ${getModeLabel(activeModeTab)}?`;
     if (!window.confirm(confirmMsg)) return;
-    deleteProductFromMode(activeModeTab, product.id);
+    deleteProductFromMode(activeModeTab, product.id, userId);
     syncProductsToCloud();
-    const updated = getMergedSkincareData();
+    const updated = getMergedSkincareData(userId);
     setProducts(updated[activeModeTab]?.full || []);
     onUpdate?.();
   };
@@ -132,9 +132,9 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
       ? `Reset all ${getModeLabel(activeModeTab)} routine products to defaults?`
       : `Kembalikan semua produk Rutin ${getModeLabel(activeModeTab)} ke daftar bawaan?`;
     if (!window.confirm(confirmMsg)) return;
-    restoreDefaultProducts(activeModeTab);
+    restoreDefaultProducts(activeModeTab, userId);
     syncProductsToCloud();
-    const updated = getMergedSkincareData();
+    const updated = getMergedSkincareData(userId);
     setProducts(updated[activeModeTab]?.full || []);
     onUpdate?.();
   };

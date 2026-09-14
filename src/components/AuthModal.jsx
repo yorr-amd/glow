@@ -16,6 +16,7 @@ import {
   Smile,
 } from 'lucide-react';
 import { DEFAULT_USER_PROFILE } from '../data/userProfile';
+import { createAccount } from '../services/db';
 import { useLanguage } from '../i18n/LanguageContext';
 
 const AVATAR_LIST = ['🌸', '✨', '🍓', '🎀', '👸', '🦄', '💄', '🫧', '🌷', '💎', '🌙', '☀️'];
@@ -62,7 +63,7 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
     );
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const finalName = enteredName.trim() || (isEn ? 'Glow Beauty' : 'Sahabat Glow');
     const createdProfile = {
       ...DEFAULT_USER_PROFILE,
@@ -78,10 +79,11 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
       }).format(new Date()),
       isRegistered: true,
     };
-    onLoginSuccess(createdProfile);
+    const saved = await createAccount(createdProfile);
+    onLoginSuccess(saved);
   };
 
-  const handleContinueAsGuest = () => {
+  const handleContinueAsGuest = async () => {
     const guestProfile = {
       ...DEFAULT_USER_PROFILE,
       name: isEn ? 'Glow Friend' : 'Pengguna Glow',
@@ -95,7 +97,8 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
       }).format(new Date()),
       isRegistered: true,
     };
-    onLoginSuccess(guestProfile);
+    const saved = await createAccount(guestProfile);
+    onLoginSuccess(saved);
   };
 
   return (
@@ -221,7 +224,7 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
                     value={enteredName}
                     onChange={(e) => setEnteredName(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white/90 text-sm font-semibold text-[#3D1F2A]"
-                    placeholder={isEn ? 'e.g. Yori, Amanda, Sophia...' : 'Contoh: Yori, Amanda, Sarah...'}
+                    placeholder={isEn ? 'e.g. Amanda, Sophia, Emma...' : 'Contoh: Sarah, Amanda, Maya...'}
                     required
                   />
                   <User size={16} className="absolute left-3.5 top-3 text-pink-400" />
@@ -389,7 +392,7 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
                   <p className="text-slate-600 text-[11px] leading-relaxed">
                     {t(
                       'onboarding.safetyLockDesc',
-                      'Toner Merah (Sonik Scents) hanya dibuka pada hari Rabu & Sabtu malam demi menjaga skin barrier kamu tetap aman dari over-exfoliasi.'
+                      'Toner Eksfoliasi hanya dibuka pada hari Rabu & Sabtu malam demi menjaga skin barrier kamu tetap aman dari over-exfoliasi.'
                     )}
                   </p>
                 </div>

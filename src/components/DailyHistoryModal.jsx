@@ -19,27 +19,40 @@ import { modeConfig } from '../data/skincareData';
 import { useLanguage } from '../i18n/LanguageContext';
 import { getCurrentUser } from '../services/firebase';
 import { saveCloudDailyHistory } from '../services/firestoreService';
+import { getActiveAccountId, getUserData, setUserData } from '../services/db';
 
-export const DAILY_HISTORY_KEY = 'ceceyori_daily_history';
+export const DAILY_HISTORY_KEY = 'glow_daily_history';
 
-export const getDailyHistory = () => {
+export const getDailyHistory = (userId = null) => {
+  const activeId = userId || getActiveAccountId();
+  if (activeId) {
+    return getUserData(activeId, 'daily_history', {});
+  }
   try {
-    return JSON.parse(localStorage.getItem(DAILY_HISTORY_KEY) || '{}');
+    return JSON.parse(localStorage.getItem(DAILY_HISTORY_KEY) || localStorage.getItem('ceceyori_daily_history') || '{}');
   } catch {
     return {};
   }
 };
 
-export const saveDailyHistory = (history) => {
-  localStorage.setItem(DAILY_HISTORY_KEY, JSON.stringify(history));
+export const saveDailyHistory = (history, userId = null) => {
+  const activeId = userId || getActiveAccountId();
+  if (activeId) {
+    setUserData(activeId, 'daily_history', history);
+  }
+  try {
+    localStorage.setItem(DAILY_HISTORY_KEY, JSON.stringify(history));
+  } catch {
+    // Ignore storage quota error
+  }
   const user = getCurrentUser();
   if (user?.uid) {
     saveCloudDailyHistory(user.uid, history).catch(() => {});
   }
 };
 
-export const recordDayActivity = (dateStr, checkedIds, allItems, mode) => {
-  const history = getDailyHistory();
+export const recordDayActivity = (dateStr, checkedIds, allItems, mode, userId = null) => {
+  const history = getDailyHistory(userId);
   const existing = history[dateStr] || {
     date: dateStr,
     timestamp: Date.now(),
@@ -63,11 +76,11 @@ export const recordDayActivity = (dateStr, checkedIds, allItems, mode) => {
     totalCount: combinedItems.length,
   };
 
-  saveDailyHistory(history);
+  saveDailyHistory(history, userId);
   return history;
 };
 
-export default function DailyHistoryModal({ isOpen, onClose }) {
+export default function DailyHistoryModal({ isOpen, onClose, userId = null }) {
   const { t, isEn } = useLanguage();
   const [history, setHistory] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
@@ -76,7 +89,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
 
   useEffect(() => {
     if (isOpen) {
-      const data = getDailyHistory();
+      const data = getDailyHistory(userId);
       setHistory(data);
       const keys = Object.keys(data).sort().reverse();
       if (keys.length > 0) {
@@ -84,7 +97,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
         setNoteInput(data[keys[0]]?.note || '');
       }
     }
-  }, [isOpen]);
+  }, [isOpen, userId]);
 
   if (!isOpen) return null;
 
@@ -107,7 +120,7 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
       },
     };
     setHistory(updated);
-    saveDailyHistory(updated);
+    saveDailyHistory(updated, userId);
   };
 
   const getModeLabel = (key) => {
@@ -125,10 +138,11 @@ export default function DailyHistoryModal({ isOpen, onClose }) {
       const updated = { ...history };
       delete updated[date];
       setHistory(updated);
-      saveDailyHistory(updated);
+      saveDailyHistory(updated, userId);
       if (selectedDate === date) {
         const remaining = Object.keys(updated).sort().reverse();
         setSelectedDate(remaining[0] || null);
+        setNoteInput(remaining[0] ? updated[remaining[0]]?.note || '' : '');
       }
     }
   };
