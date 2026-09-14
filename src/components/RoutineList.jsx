@@ -14,6 +14,7 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { PackageOpen, Plus } from 'lucide-react';
 import TaskItem from './TaskItem';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -47,7 +48,7 @@ function SortableTaskItem({ item, isChecked, onToggle, shortcutIndex }) {
   );
 }
 
-export default function RoutineList({ title, items, checkedItems, onToggle, onReorder, routineMode = 'full' }) {
+export default function RoutineList({ title, items, checkedItems, onToggle, onReorder, onOpenShelf, routineMode = 'full' }) {
   const { t, isEn } = useLanguage();
   const doneCount = items.filter(i => checkedItems.includes(i.id)).length;
   const essentialCount = items.filter(i => i.isEssential).length;
@@ -86,7 +87,9 @@ export default function RoutineList({ title, items, checkedItems, onToggle, onRe
             {routineMode === 'quick' && essentialCount > 0 && (
               <span className="text-[10px] text-slate-400">({essentialCount} essential)</span>
             )}
-            <span className="hidden lg:inline text-[10px] text-slate-400">{t('routine.dragNotice', 'Geser ⋮⋮ untuk urutan')}</span>
+            {items.length > 1 && (
+              <span className="hidden lg:inline text-[10px] text-slate-400">{t('routine.dragNotice', 'Geser ⋮⋮ untuk urutan')}</span>
+            )}
           </div>
         </div>
         <div className="flex gap-1.5 items-center">
@@ -104,21 +107,47 @@ export default function RoutineList({ title, items, checkedItems, onToggle, onRe
         </div>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item, index) => (
-              <SortableTaskItem
-                key={item.id}
-                item={item}
-                isChecked={checkedItems.includes(item.id)}
-                onToggle={onToggle}
-                shortcutIndex={index}
-              />
-            ))}
-          </ul>
-        </SortableContext>
-      </DndContext>
+      {items.length === 0 ? (
+        <div className="bg-white/70 backdrop-blur-md border border-pink-200/60 rounded-3xl p-8 sm:p-12 text-center shadow-xs flex flex-col items-center justify-center my-2 transition-all">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-pink-100 to-rose-100 border border-pink-200 text-[#D06885] flex items-center justify-center text-2xl mb-4 shadow-xs">
+            <PackageOpen size={30} />
+          </div>
+          <h3 className="font-display text-[#3D1F2A] text-lg sm:text-xl font-bold mb-1.5">
+            {isEn ? 'No Skincare Products Yet' : 'Belum Ada Produk di Rutinitas Ini'}
+          </h3>
+          <p className="text-slate-500 text-xs sm:text-sm max-w-md mx-auto mb-5 leading-relaxed">
+            {isEn
+              ? 'Your routine is completely clean. Add your favorite skincare products to customize your personal glowing journey!'
+              : 'Rutinitas akun ini masih bersih (0 produk). Tambahkan produk skincare favoritmu ke dalam lemari (Shelf) untuk memulai rutinitas harian! 🌸'}
+          </p>
+          {onOpenShelf && (
+            <button
+              type="button"
+              onClick={onOpenShelf}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#D06885] to-[#E8829D] text-white font-bold text-xs sm:text-sm hover:opacity-95 shadow-md shadow-pink-500/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Plus size={16} />
+              <span>{isEn ? '+ Add Skincare in Shelf' : '+ Tambah Produk di Shelf'}</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {items.map((item, index) => (
+                <SortableTaskItem
+                  key={item.id}
+                  item={item}
+                  isChecked={checkedItems.includes(item.id)}
+                  onToggle={onToggle}
+                  shortcutIndex={index}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
+      )}
     </section>
   );
 }

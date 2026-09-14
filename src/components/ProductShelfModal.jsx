@@ -300,54 +300,77 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {products.map((product) => {
-                  const displayDesc = isEn && product.desc_en ? product.desc_en : product.desc;
-                  return (
-                    <div
-                      key={product.id}
-                      className="p-4 rounded-2xl border border-pink-100 bg-white shadow-2xs hover:shadow-sm transition-all flex items-start justify-between gap-3 group"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-[#3D1F2A]">{product.name}</span>
-                          {product.isEssential !== false && (
-                            <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">
-                              {t('routine.essential')}
+              {products.length === 0 ? (
+                <div className="text-center py-10 px-4 bg-pink-50/40 rounded-2xl border border-dashed border-pink-200 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-white text-pink-400 flex items-center justify-center mb-3 shadow-xs border border-pink-100">
+                    <Package size={24} />
+                  </div>
+                  <h4 className="text-xs font-bold text-[#3D1F2A]">
+                    {isEn ? 'No products in this routine yet' : 'Belum ada produk di rutinitas ini'}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-1 max-w-xs mx-auto mb-4 leading-relaxed">
+                    {isEn
+                      ? 'Click the button below to add your first skincare product to this routine.'
+                      : 'Klik tombol di bawah untuk menambahkan produk skincare pertamamu.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddForm(true)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#D06885] to-[#9B4B62] shadow-xs hover:shadow-md transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus size={14} /> {t('shelfModal.addProduct')}
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {products.map((product) => {
+                    const displayDesc = isEn && product.desc_en ? product.desc_en : product.desc;
+                    return (
+                      <div
+                        key={product.id}
+                        className="p-4 rounded-2xl border border-pink-100 bg-white shadow-2xs hover:shadow-sm transition-all flex items-start justify-between gap-3 group"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-[#3D1F2A]">{product.name}</span>
+                            {product.isEssential !== false && (
+                              <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md">
+                                {t('routine.essential')}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-relaxed">{displayDesc}</p>
+                          <div className="flex items-center gap-2 pt-1">
+                            <span className="text-[9px] uppercase font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
+                              {t(`shelfModal.categories.${product.category || 'face'}`) || product.category || 'face'}
                             </span>
-                          )}
+                            <span className="text-[9px] text-slate-400 font-mono">
+                              PAO: {product.pao || '12M'}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-[11px] text-slate-500 leading-relaxed">{displayDesc}</p>
-                        <div className="flex items-center gap-2 pt-1">
-                          <span className="text-[9px] uppercase font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
-                            {t(`shelfModal.categories.${product.category || 'face'}`) || product.category || 'face'}
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-mono">
-                            PAO: {product.pao || '12M'}
-                          </span>
-                        </div>
-                      </div>
 
-                      <div className="flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
-                          title={t('shelfModal.edit')}
-                        >
-                          <Edit2 size={13} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                          title={t('shelfModal.delete')}
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => handleEdit(product)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-pink-600 hover:bg-pink-50 transition-colors cursor-pointer"
+                            title={t('shelfModal.edit')}
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product.id)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title={t('shelfModal.delete')}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
         </div>

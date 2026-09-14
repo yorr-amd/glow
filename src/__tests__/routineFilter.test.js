@@ -1,11 +1,52 @@
 import { describe, it, expect } from 'vitest';
-import { defaultSkincareData } from '../data/skincareData';
+
+const mockRoutineData = {
+  pagi: {
+    title: "Rutin Pagi (Start Fresh & Glowing ☀️)",
+    timeRange: "05:00 - 10:59",
+    full: [
+      { id: "p1", name: "Hydrating Body Lotion", desc: "Body lotion", category: "body", isEssential: true },
+      { id: "p2", name: "Gentle Facial Cleanser", desc: "Cleanser", category: "face", isEssential: true },
+      { id: "p3", name: "Daily Moisturizer", desc: "Moisturizer", category: "face", isEssential: true },
+      { id: "p4", name: "Daily Lip Tint", desc: "Lip tint", category: "decorative", isEssential: false },
+    ],
+    quick: ["p1", "p2", "p3"]
+  },
+  siang: {
+    title: "Rutin Siang",
+    timeRange: "11:00 - 14:59",
+    full: [
+      { id: "si1", name: "Face Mist", desc: "Mist", category: "face", isEssential: true }
+    ],
+    quick: ["si1"]
+  },
+  sore: {
+    title: "Rutin Sore",
+    timeRange: "15:00 - 18:59",
+    full: [
+      { id: "s1", name: "Body Lotion", desc: "Lotion", category: "body", isEssential: true },
+      { id: "s2", name: "Facial Cleanser", desc: "Cleanser", category: "face", isEssential: true }
+    ],
+    quick: ["s1"]
+  },
+  malam: {
+    title: "Rutin Malam (Glow While You Sleep 🌙)",
+    timeRange: "19:00 - 04:59",
+    full: [
+      { id: "m1", name: "Hydrating Body Lotion", desc: "Lotion", category: "body", isEssential: true },
+      { id: "m2", name: "Gentle Facial Cleanser", desc: "Cleanser", category: "face", isEssential: true },
+      { id: "m3", name: "Daily Moisturizer", desc: "Moisturizer", category: "face", isEssential: true },
+      { id: "m6", name: "Exfoliating Toner", desc: "Toner", category: "body", isEssential: false, isConditional: true }
+    ],
+    quick: ["m1", "m2", "m3"]
+  }
+};
 
 /**
  * Filter function implementing the exact App.jsx getActiveItems logic
  */
-function getActiveItems({ mode, routineMode, tonerEnabled, isExfoliatingDay }) {
-  const baseRoutine = defaultSkincareData[mode] || defaultSkincareData.sore;
+function getActiveItems({ mode, routineMode, tonerEnabled, isExfoliatingDay, data = mockRoutineData }) {
+  const baseRoutine = data[mode] || data.sore;
 
   // 1. Quick mode vs Full mode item mapping
   let items = routineMode === 'quick'

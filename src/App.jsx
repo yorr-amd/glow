@@ -142,6 +142,7 @@ export default function App() {
   const [userProfile, setUserProfile] = useState(() => getSavedUserProfile());
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isAddingAccount, setIsAddingAccount] = useState(false);
 
   // ── State: Navigation View ('landing' | 'auth' | 'dashboard') ──
   const [viewState, setViewState] = useState(() => {
@@ -481,6 +482,7 @@ export default function App() {
 
   const handleAddNewAccount = () => {
     setShowAccountModal(false);
+    setIsAddingAccount(true);
     setShowAuthModal(true);
   };
 
@@ -511,7 +513,19 @@ export default function App() {
     setUserProfile(updatedProfile);
     setActiveAccountId(updatedProfile.id);
     saveUserProfile(updatedProfile);
+    setIsAddingAccount(false);
     setShowAuthModal(false);
+    // Load that account's isolated data (fresh empty state if new account)
+    const userChecked = getUserData(updatedProfile.id, 'checked_items', {});
+    setCheckedItems(userChecked);
+    const userStreaks = getUserData(updatedProfile.id, 'streak_history', []);
+    setCurrentStreak(calculateStreak(userStreaks));
+    const userRoutineMode = getUserData(updatedProfile.id, 'quick_mode', 'full');
+    setRoutineMode(userRoutineMode);
+    const userOrder = getUserData(updatedProfile.id, 'routine_order', {});
+    setCustomOrder(userOrder);
+    const userToner = getUserData(updatedProfile.id, 'toner_enabled', null);
+    if (userToner !== null) setTonerEnabled(userToner);
     setViewState('dashboard');
     localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
   };
@@ -530,10 +544,18 @@ export default function App() {
         />
         <AuthModal
           isOpen={showAuthModal}
-          userProfile={userProfile}
+          userProfile={isAddingAccount ? null : userProfile}
+          isNewAccount={isAddingAccount || !userProfile?.isRegistered}
           mode={mode}
           onLoginSuccess={handleLoginSuccess}
-          onBackToLanding={() => setShowAuthModal(false)}
+          onBackToLanding={() => {
+            setIsAddingAccount(false);
+            setShowAuthModal(false);
+          }}
+          onClose={() => {
+            setIsAddingAccount(false);
+            setShowAuthModal(false);
+          }}
         />
       </div>
     );
@@ -801,6 +823,7 @@ export default function App() {
             checkedItems={checkedItems[mode] || []}
             onToggle={handleToggle}
             onReorder={handleReorder}
+            onOpenShelf={() => setShowProductShelf(true)}
             mode={mode}
             routineMode={routineMode}
           />
@@ -943,9 +966,13 @@ export default function App() {
       {/* Onboarding Setup Wizard Modal */}
       <AuthModal
         isOpen={showAuthModal}
-        userProfile={userProfile}
+        userProfile={isAddingAccount ? null : userProfile}
+        isNewAccount={isAddingAccount}
         onLoginSuccess={handleLoginSuccess}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          setIsAddingAccount(false);
+          setShowAuthModal(false);
+        }}
       />
 
       {/* Auto Update Notification Modal */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sparkles,
   ShieldCheck,
@@ -38,20 +38,39 @@ const AVAILABLE_GOALS = [
   { id: 'antiaging', labelId: 'Awet Muda & Elastis', labelEn: 'Firm & Youthful' },
 ];
 
-export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackToLanding, onClose }) {
+export default function AuthModal({ isOpen, userProfile, isNewAccount = false, onLoginSuccess, onBackToLanding, onClose }) {
   const { lang, t } = useLanguage();
   const isEn = lang === 'en';
 
   const [step, setStep] = useState(1);
-  const [enteredName, setEnteredName] = useState(userProfile?.name || '');
-  const [selectedAvatar, setSelectedAvatar] = useState(userProfile?.avatar || '🌸');
-  const [selectedSkinType, setSelectedSkinType] = useState(userProfile?.skinType || 'Normal');
-  const [enteredTagline, setEnteredTagline] = useState(userProfile?.tagline || '');
-  const [selectedGoals, setSelectedGoals] = useState(
-    Array.isArray(userProfile?.skinGoals) && userProfile.skinGoals.length > 0
-      ? userProfile.skinGoals
-      : ['Cerah Alami & Glowing', 'Skin Barrier Kuat']
-  );
+  const [enteredName, setEnteredName] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState('🌸');
+  const [selectedSkinType, setSelectedSkinType] = useState('Normal');
+  const [enteredTagline, setEnteredTagline] = useState('');
+  const [selectedGoals, setSelectedGoals] = useState(['Cerah Alami & Glowing', 'Skin Barrier Kuat']);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep(1);
+      if (isNewAccount || !userProfile) {
+        setEnteredName('');
+        setSelectedAvatar('🌸');
+        setSelectedSkinType('Normal');
+        setEnteredTagline('');
+        setSelectedGoals(['Cerah Alami & Glowing', 'Skin Barrier Kuat']);
+      } else {
+        setEnteredName(userProfile?.name || '');
+        setSelectedAvatar(userProfile?.avatar || '🌸');
+        setSelectedSkinType(userProfile?.skinType || 'Normal');
+        setEnteredTagline(userProfile?.tagline || '');
+        setSelectedGoals(
+          Array.isArray(userProfile?.skinGoals) && userProfile.skinGoals.length > 0
+            ? userProfile.skinGoals
+            : ['Cerah Alami & Glowing', 'Skin Barrier Kuat']
+        );
+      }
+    }
+  }, [isOpen, userProfile, isNewAccount]);
 
   if (!isOpen) return null;
 
@@ -65,9 +84,14 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
 
   const handleFinish = async () => {
     const finalName = enteredName.trim() || (isEn ? 'Glow Beauty' : 'Sahabat Glow');
+    const baseProfile = isNewAccount || !userProfile ? DEFAULT_USER_PROFILE : { ...DEFAULT_USER_PROFILE, ...userProfile };
+    const newId = isNewAccount || !userProfile?.id
+      ? `user_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`
+      : userProfile.id;
+
     const createdProfile = {
-      ...DEFAULT_USER_PROFILE,
-      ...userProfile,
+      ...baseProfile,
+      id: newId,
       name: finalName,
       avatar: selectedAvatar,
       skinType: selectedSkinType,
@@ -78,14 +102,18 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
         year: 'numeric',
       }).format(new Date()),
       isRegistered: true,
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
     };
     const saved = await createAccount(createdProfile);
     onLoginSuccess(saved);
   };
 
   const handleContinueAsGuest = async () => {
+    const newId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
     const guestProfile = {
       ...DEFAULT_USER_PROFILE,
+      id: newId,
       name: isEn ? 'Glow Friend' : 'Pengguna Glow',
       avatar: '🌸',
       skinType: 'Normal',
@@ -96,6 +124,8 @@ export default function AuthModal({ isOpen, userProfile, onLoginSuccess, onBackT
         year: 'numeric',
       }).format(new Date()),
       isRegistered: true,
+      createdAt: new Date().toISOString(),
+      lastActiveAt: new Date().toISOString(),
     };
     const saved = await createAccount(guestProfile);
     onLoginSuccess(saved);
