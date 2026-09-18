@@ -36,7 +36,23 @@ const mockRoutineData = {
       { id: "m1", name: "Hydrating Body Lotion", desc: "Lotion", category: "body", isEssential: true },
       { id: "m2", name: "Gentle Facial Cleanser", desc: "Cleanser", category: "face", isEssential: true },
       { id: "m3", name: "Daily Moisturizer", desc: "Moisturizer", category: "face", isEssential: true },
-      { id: "m6", name: "Exfoliating Toner", desc: "Toner", category: "body", isEssential: false, isConditional: true }
+      {
+        id: "m6",
+        name: "Custom Periodic Serum",
+        desc: "Periodic treatment",
+        category: "face",
+        isEssential: false,
+        scheduleType: "custom_days",
+        scheduledDays: [1, 4], // Monday (1) & Thursday (4)
+      },
+      {
+        id: "m7",
+        name: "Exfoliating Toner",
+        desc: "Toner",
+        category: "body",
+        isEssential: false,
+        isConditional: true, // Legacy fallback: [3, 6]
+      }
     ],
     quick: ["m1", "m2", "m3"]
   }
@@ -45,7 +61,7 @@ const mockRoutineData = {
 /**
  * Filter function implementing the exact App.jsx getActiveItems logic
  */
-function getActiveItems({ mode, routineMode, tonerEnabled, isExfoliatingDay, data = mockRoutineData }) {
+function getActiveItems({ mode, routineMode, tonerEnabled = true, todayDay = 3, data = mockRoutineData }) {
   const baseRoutine = data[mode] || data.sore;
 
   // 1. Quick mode vs Full mode item mapping
@@ -53,28 +69,37 @@ function getActiveItems({ mode, routineMode, tonerEnabled, isExfoliatingDay, dat
     ? baseRoutine.full.filter((item) => (baseRoutine.quick || []).includes(item.id) || item.isEssential)
     : [...baseRoutine.full];
 
-  // 2. Strict Toner Eksfoliasi condition: Rabu & Sabtu malam saja
-  const canUseToner = mode === 'malam' && isExfoliatingDay && tonerEnabled;
-  if (canUseToner) {
-    const tonerItem = baseRoutine.full.find((i) => i.id === 'm6' || i.id === 'toner' || i.isConditional);
-    if (tonerItem && !items.some((i) => i.id === tonerItem.id)) {
-      items = [...items, tonerItem];
-    }
-  } else {
-    items = items.filter((i) => i.id !== 'm6' && i.id !== 'toner' && !i.isConditional);
-  }
+  // 2. Custom day filtering for periodic/conditional items
+  items = items.filter((item) => {
+    const isPeriodic =
+      item.scheduleType === 'custom_days' ||
+      (Array.isArray(item.scheduledDays) && item.scheduledDays.length < 7) ||
+      item.isConditional;
+
+    if (!isPeriodic) return true; // Daily items are always active
+
+    const scheduledDays = Array.isArray(item.scheduledDays)
+      ? item.scheduledDays
+      : (item.isConditional ? [3, 6] : []);
+
+    // Exclude if today is not in scheduled days
+    if (!scheduledDays.includes(todayDay)) return false;
+
+    // Respect toggle switch
+    return tonerEnabled;
+  });
 
   return items;
 }
 
-describe('Routine Item Filtering & Strict Business Rules', () => {
-  describe('Quick Mode Item Mapping (Bug P0 Fix)', () => {
+describe('Routine Item Filtering & Custom Periodic Scheduling', () => {
+  describe('Quick Mode Item Mapping', () => {
     it('returns complete product objects with name, desc, and category in Quick Mode', () => {
       const items = getActiveItems({
         mode: 'pagi',
         routineMode: 'quick',
         tonerEnabled: false,
-        isExfoliatingDay: false,
+        todayDay: 1,
       });
 
       expect(items.length).toBeGreaterThan(0);
@@ -92,14 +117,14 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
         mode: 'pagi',
         routineMode: 'quick',
         tonerEnabled: false,
-        isExfoliatingDay: false,
+        todayDay: 1,
       });
 
       const fullItems = getActiveItems({
         mode: 'pagi',
         routineMode: 'full',
         tonerEnabled: false,
-        isExfoliatingDay: false,
+        todayDay: 1,
       });
 
       expect(quickItems.length).toBeLessThan(fullItems.length);
@@ -107,56 +132,76 @@ describe('Routine Item Filtering & Strict Business Rules', () => {
     });
   });
 
-  describe('Strict Exfoliating Toner Rules (AGENTS.md Rule 1 & Bug P1 Fix)', () => {
-    it('LOCKS and EXCLUDES Exfoliating Toner on non-exfoliating nights (e.g. Friday night)', () => {
+  describe('Custom Periodic Scheduling Rules', () => {
+    it('INCLUDES custom periodic product on its scheduled day (e.g. Monday = 1)', () => {
       const items = getActiveItems({
         mode: 'malam',
         routineMode: 'full',
         tonerEnabled: true,
-        isExfoliatingDay: false, // Not Wed or Sat
+        todayDay: 1, // Monday
       });
 
-      const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Exfoliating Toner'));
-      expect(hasToner).toBe(false);
+      const hasCustom = items.some((i) => i.id === 'm6');
+      expect(hasCustom).toBe(true);
     });
 
-    it('LOCKS and EXCLUDES Exfoliating Toner when user toggle is OFF (even on Wed/Sat night)', () => {
+    it('EXCLUDES custom periodic product on unscheduled days (e.g. Tuesday = 2 or Wednesday = 3)', () => {
+      const items = getActiveItems({
+        mode: 'malam',
+        routineMode: 'full',
+        tonerEnabled: true,
+        todayDay: 2, // Tuesday
+      });
+
+      const hasCustom = items.some((i) => i.id === 'm6');
+      expect(hasCustom).toBe(false);
+    });
+
+    it('EXCLUDES scheduled product when user toggle is OFF (even on scheduled day)', () => {
       const items = getActiveItems({
         mode: 'malam',
         routineMode: 'full',
         tonerEnabled: false, // Toggle turned off
-        isExfoliatingDay: true, // Wed/Sat
+        todayDay: 1, // Monday
       });
 
-      const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Exfoliating Toner'));
-      expect(hasToner).toBe(false);
+      const hasCustom = items.some((i) => i.id === 'm6');
+      expect(hasCustom).toBe(false);
     });
 
-    it('LOCKS and EXCLUDES Exfoliating Toner during daytime (Pagi, Siang, Sore)', () => {
-      for (const mode of ['pagi', 'siang', 'sore']) {
-        const items = getActiveItems({
-          mode,
-          routineMode: 'full',
-          tonerEnabled: true,
-          isExfoliatingDay: true,
-        });
-
-        const hasToner = items.some((i) => i.id === 'm6' || i.name.includes('Exfoliating Toner'));
-        expect(hasToner).toBe(false);
-      }
-    });
-
-    it('ACTIVATES Exfoliating Toner ONLY on Wed/Sat night when toggle is ON', () => {
-      const items = getActiveItems({
+    it('supports backward-compatible conditional items defaulting to Wednesday (3) & Saturday (6)', () => {
+      // Wednesday (3)
+      const wedItems = getActiveItems({
         mode: 'malam',
         routineMode: 'full',
         tonerEnabled: true,
-        isExfoliatingDay: true, // Wed/Sat
+        todayDay: 3,
       });
+      expect(wedItems.some((i) => i.id === 'm7')).toBe(true);
 
-      const tonerItem = items.find((i) => i.id === 'm6');
-      expect(tonerItem).toBeDefined();
-      expect(tonerItem.name).toBe('Exfoliating Toner');
+      // Friday (5)
+      const friItems = getActiveItems({
+        mode: 'malam',
+        routineMode: 'full',
+        tonerEnabled: true,
+        todayDay: 5,
+      });
+      expect(friItems.some((i) => i.id === 'm7')).toBe(false);
+    });
+
+    it('ALWAYS includes daily routine items on any day', () => {
+      for (const day of [0, 1, 2, 3, 4, 5, 6]) {
+        const items = getActiveItems({
+          mode: 'malam',
+          routineMode: 'full',
+          tonerEnabled: false,
+          todayDay: day,
+        });
+
+        expect(items.some((i) => i.id === 'm1')).toBe(true);
+        expect(items.some((i) => i.id === 'm2')).toBe(true);
+        expect(items.some((i) => i.id === 'm3')).toBe(true);
+      }
     });
   });
 });

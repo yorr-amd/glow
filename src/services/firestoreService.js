@@ -1,5 +1,13 @@
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getDb } from './firebase';
+import {
+  getActiveAccountId,
+  getAccountById,
+  getUserData,
+  setUserData,
+  updateAccount,
+  createAccount,
+} from './db';
 
 /**
  * 🌸 Cloud Firestore Service for Glow Skincare Tracker
@@ -141,29 +149,32 @@ export async function fetchCloudStreakHistory(uid) {
 
 // ── 5. MASTER SYNC FUNCTION ──
 /**
- * Mengunggah seluruh data lokal pengguna ke Cloud Firestore
+ * Mengunggah seluruh data lokal pengguna aktif ke Cloud Firestore
  */
 export async function uploadLocalDataToCloud(uid) {
   if (!uid) return false;
 
   try {
+    const activeId = getActiveAccountId();
+    if (!activeId) return false;
+
     // 1. User Profile
-    const localProfile = JSON.parse(localStorage.getItem('ceceyori_user_profile') || 'null');
+    const localProfile = await getAccountById(activeId);
     if (localProfile) {
       await saveCloudUserProfile(uid, localProfile);
     }
 
     // 2. Products
-    const customProds = JSON.parse(localStorage.getItem('ceceyori_custom_products') || '{}');
-    const deletedProds = JSON.parse(localStorage.getItem('ceceyori_deleted_products') || '{}');
+    const customProds = getUserData(activeId, 'custom_products', {});
+    const deletedProds = getUserData(activeId, 'deleted_products', {});
     await saveCloudProducts(uid, customProds, deletedProds);
 
     // 3. Daily History
-    const history = JSON.parse(localStorage.getItem('ceceyori_daily_history') || '{}');
+    const history = getUserData(activeId, 'daily_history', {});
     await saveCloudDailyHistory(uid, history);
 
     // 4. Streaks
-    const streaks = JSON.parse(localStorage.getItem('ceceyori_streak_history') || '[]');
+    const streaks = getUserData(activeId, 'streak_history', []);
     await saveCloudStreakHistory(uid, streaks);
 
     return true;
@@ -174,7 +185,7 @@ export async function uploadLocalDataToCloud(uid) {
 }
 
 /**
- * Mengunduh seluruh data pengguna dari Cloud Firestore ke penyimpanan lokal
+ * Mengunduh seluruh data pengguna dari Cloud Firestore ke akun lokal aktif
  */
 export async function downloadCloudDataToLocal(uid) {
   if (!uid) return null;
@@ -188,31 +199,39 @@ export async function downloadCloudDataToLocal(uid) {
     ]);
 
     const result = {};
+    let activeId = getActiveAccountId();
 
     if (cloudProfile) {
-      localStorage.setItem('ceceyori_user_profile', JSON.stringify(cloudProfile));
+      if (!activeId) {
+        const acc = await createAccount(cloudProfile);
+        activeId = acc.id;
+      } else {
+        await updateAccount(activeId, cloudProfile);
+      }
       result.profile = cloudProfile;
     }
 
-    if (cloudProducts) {
-      if (cloudProducts.custom) {
-        localStorage.setItem('ceceyori_custom_products', JSON.stringify(cloudProducts.custom));
-        result.customProducts = cloudProducts.custom;
+    if (activeId) {
+      if (cloudProducts) {
+        if (cloudProducts.custom) {
+          setUserData(activeId, 'custom_products', cloudProducts.custom);
+          result.customProducts = cloudProducts.custom;
+        }
+        if (cloudProducts.deleted) {
+          setUserData(activeId, 'deleted_products', cloudProducts.deleted);
+          result.deletedProducts = cloudProducts.deleted;
+        }
       }
-      if (cloudProducts.deleted) {
-        localStorage.setItem('ceceyori_deleted_products', JSON.stringify(cloudProducts.deleted));
-        result.deletedProducts = cloudProducts.deleted;
+
+      if (cloudHistory) {
+        setUserData(activeId, 'daily_history', cloudHistory);
+        result.dailyHistory = cloudHistory;
       }
-    }
 
-    if (cloudHistory) {
-      localStorage.setItem('ceceyori_daily_history', JSON.stringify(cloudHistory));
-      result.dailyHistory = cloudHistory;
-    }
-
-    if (cloudStreak) {
-      localStorage.setItem('ceceyori_streak_history', JSON.stringify(cloudStreak));
-      result.streakHistory = cloudStreak;
+      if (cloudStreak) {
+        setUserData(activeId, 'streak_history', cloudStreak);
+        result.streakHistory = cloudStreak;
+      }
     }
 
     return result;

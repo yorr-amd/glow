@@ -27,6 +27,9 @@ target/
 *.key
 *.pub
 *.sig
+*.keystore
+*.jks
+keystore.properties
 
 # Logs & Scripts
 npm-debug.log*
@@ -54,3 +57,6 @@ android/local.properties
 android/.idea/
 android/*.iml
 *.apk
+*.AppImage
+*.deb
+*.rpm

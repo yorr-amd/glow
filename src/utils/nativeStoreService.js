@@ -1,7 +1,7 @@
 import { LazyStore } from '@tauri-apps/plugin-store';
 
 /**
- * 🌸 Cece Yori Native Store Service
+ * 🌸 Glow Native Store Service
  * Stores data safely into a native JSON file in the app data directory
  */
 
@@ -10,7 +10,7 @@ let storeInstance = null;
 function getStore() {
   if (!storeInstance) {
     try {
-      storeInstance = new LazyStore('ceceyori_glow_data.json');
+      storeInstance = new LazyStore('glow_app_data.json');
     } catch (err) {
       console.warn('LazyStore not initialized:', err);
     }

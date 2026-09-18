@@ -1,6 +1,6 @@
 [package]
 name = "glow"
-version = "1.1.7"
+version = "1.1.8"
 description = "Glow Skincare Companion"
 authors = ["Glow Team"]
 edition = "2021"

@@ -35,7 +35,7 @@ export async function notifySkincare(title, body) {
 }
 
 // Track last sent notifications so we don't spam
-const NOTIFIED_KEY = 'ceceyori_notified_today';
+const NOTIFIED_KEY = 'glow_notified_today';
 
 export function checkAndSendRoutineReminders() {
   const now = new Date();

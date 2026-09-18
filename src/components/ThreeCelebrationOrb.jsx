@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import confetti from 'canvas-confetti';
 import { Sparkles, Heart, Crown, Award, Flame, Star, Zap } from 'lucide-react';
-
-const STORAGE_VIBES_KEY = 'ceceyori_glow_vibes_count';
+import { getActiveAccountId, getUserData, setUserData } from '../services/db';
 
 // 🔮 Fun Affirmations & Beauty Fortunes
 const BEAUTY_FORTUNES = [
@@ -19,17 +18,26 @@ const BEAUTY_FORTUNES = [
   'Selamat! Kamu resmi menyandang gelar Ratu Skincare No. 1 🦄',
 ];
 
-export default function ThreeCelebrationOrb({ streak = 0, mode = 'sore' }) {
+export default function ThreeCelebrationOrb({ streak = 0, mode = 'sore', userId = null }) {
   const mountRef = useRef(null);
   const orbMeshRef = useRef(null);
   const wireMeshRef = useRef(null);
   const burstParticlesRef = useRef([]);
 
-  // Load saved vibes from localStorage (Default 0 for clean fresh users!)
+  const activeId = userId || getActiveAccountId();
+
+  // Load saved vibes per user (Default 0 for clean fresh users!)
   const [vibes, setVibes] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_VIBES_KEY);
-    return saved !== null ? parseInt(saved, 10) : 0;
+    return activeId ? getUserData(activeId, 'vibes_count', 0) : 0;
   });
+
+  // Re-sync vibes when active user changes
+  useEffect(() => {
+    const currentId = userId || getActiveAccountId();
+    if (currentId) {
+      setVibes(getUserData(currentId, 'vibes_count', 0));
+    }
+  }, [userId]);
 
   const [currentFortune, setCurrentFortune] = useState(BEAUTY_FORTUNES[0]);
   const [floatingIcons, setFloatingIcons] = useState([]);
@@ -60,8 +68,11 @@ export default function ThreeCelebrationOrb({ streak = 0, mode = 'sore' }) {
   };
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_VIBES_KEY, vibes.toString());
-  }, [vibes]);
+    const currentId = userId || getActiveAccountId();
+    if (currentId) {
+      setUserData(currentId, 'vibes_count', vibes);
+    }
+  }, [vibes, userId]);
 
   useEffect(() => {
     const container = mountRef.current;

@@ -21,7 +21,7 @@ import AccountModal from './components/AccountModal';
 import AutoUpdateModal from './components/AutoUpdateModal';
 import { checkForAppUpdates } from './utils/autoUpdateService';
 import { getMergedSkincareData, modeConfig } from './data/skincareData';
-import { isExfoliatingDay, getCurrentDateString } from './utils/dateHelper';
+import { getCurrentDateString } from './utils/dateHelper';
 import { initNotificationService, checkAndSendRoutineReminders } from './utils/notificationService';
 import { getSavedUserProfile, saveUserProfile, clearUserProfile } from './data/userProfile';
 import {
@@ -30,6 +30,8 @@ import {
   setActiveAccountId,
   getUserData,
   setUserData,
+  getUserTodayCompleted,
+  setUserTodayCompleted,
 } from './services/db';
 import { Package, Calendar as CalendarIcon, Sunrise, Sun, Sunset, Moon, User as UserIcon, Home, Globe, CheckCircle2, Flame, RotateCcw, Sparkles } from 'lucide-react';
 import { calculateStreak, STREAK_STORAGE_KEY } from './components/StreakCounter';
@@ -133,6 +135,7 @@ export default function App() {
         setRoutineMode(userRoutineMode);
         const userOrder = getUserData(migrated.id, 'routine_order', {});
         setCustomOrder(userOrder);
+        setTodayCompleted(getUserTodayCompleted(migrated.id));
         setViewState('dashboard');
       }
     });
@@ -164,27 +167,21 @@ export default function App() {
   // ── State: Quick/Full Routine ──
   const [routineMode, setRoutineMode] = useState(() => {
     const activeId = getActiveAccountId();
-    if (activeId) {
-      return getUserData(activeId, 'quick_mode', 'full');
-    }
-    const saved = localStorage.getItem(QUICK_MODE_STORAGE_KEY);
-    return saved ?? 'full';
+    return activeId ? getUserData(activeId, 'quick_mode', 'full') : 'full';
   });
 
   const toggleRoutineMode = () => {
     setRoutineMode((prev) => (prev === 'quick' ? 'full' : 'quick'));
   };
 
-  // ── State: Toner (Hanya aktif Rabu & Sabtu malam) ──
+  // ── State: Toner / Periodic Items Toggle ──
   const [tonerEnabled, setTonerEnabled] = useState(() => {
-    if (!isExfoliatingDay()) return false;
     const activeId = getActiveAccountId();
     if (activeId) {
       const val = getUserData(activeId, 'toner_enabled', null);
       if (val !== null) return val;
     }
-    const saved = localStorage.getItem(TONER_STORAGE_KEY);
-    return saved !== null ? JSON.parse(saved) : true;
+    return true;
   });
 
   // ── State: Checked items ──
@@ -192,16 +189,16 @@ export default function App() {
     try {
       const activeId = getActiveAccountId();
       if (activeId) {
+        const today = getCurrentDateString();
+        const savedDate = getUserData(activeId, 'checked_items_date', today);
+        if (savedDate !== today) {
+          setUserData(activeId, 'checked_items_date', today);
+          setUserData(activeId, 'checked_items', {});
+          return {};
+        }
         return getUserData(activeId, 'checked_items', {});
       }
-      const today = getCurrentDateString();
-      const savedDate = localStorage.getItem(`${STORAGE_KEY}_date`);
-      if (savedDate !== today) {
-        localStorage.setItem(`${STORAGE_KEY}_date`, today);
-        return {};
-      }
-      const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : {};
+      return {};
     } catch {
       return {};
     }
@@ -209,9 +206,8 @@ export default function App() {
 
   // ── State: Daily completion flag ──
   const [todayCompleted, setTodayCompleted] = useState(() => {
-    const today = getCurrentDateString();
-    const saved = localStorage.getItem(COMPLETION_STORAGE_KEY);
-    return saved === today;
+    const activeId = getActiveAccountId();
+    return activeId ? getUserTodayCompleted(activeId) : false;
   });
 
   // ── State: Live Streak Calculation ──
@@ -220,7 +216,7 @@ export default function App() {
       const activeId = getActiveAccountId();
       const history = activeId
         ? getUserData(activeId, 'streak_history', [])
-        : JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
+        : [];
       return calculateStreak(history);
     } catch {
       return 0;
@@ -232,7 +228,7 @@ export default function App() {
       const activeId = userProfile?.id || getActiveAccountId();
       const history = activeId
         ? getUserData(activeId, 'streak_history', [])
-        : JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || '[]');
+        : [];
       setCurrentStreak(calculateStreak(history));
     } catch {
       // Ignore streak storage read error
@@ -246,7 +242,8 @@ export default function App() {
   // ── State: Custom Item Order ──
   const [customOrder, setCustomOrder] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem(ORDER_STORAGE_KEY) || '{}');
+      const activeId = getActiveAccountId();
+      return activeId ? getUserData(activeId, 'routine_order', {}) : {};
     } catch {
       return {};
     }
@@ -300,17 +297,15 @@ export default function App() {
 
   // ── Save Checked Items & Mode ──
   useEffect(() => {
-    const today = getCurrentDateString();
-    localStorage.setItem(`${STORAGE_KEY}_date`, today);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(checkedItems));
     const activeId = userProfile?.id || getActiveAccountId();
     if (activeId) {
+      const today = getCurrentDateString();
+      setUserData(activeId, 'checked_items_date', today);
       setUserData(activeId, 'checked_items', checkedItems);
     }
   }, [checkedItems, userProfile?.id]);
 
   useEffect(() => {
-    localStorage.setItem(TONER_STORAGE_KEY, JSON.stringify(tonerEnabled));
     const activeId = userProfile?.id || getActiveAccountId();
     if (activeId) {
       setUserData(activeId, 'toner_enabled', tonerEnabled);
@@ -318,7 +313,6 @@ export default function App() {
   }, [tonerEnabled, userProfile?.id]);
 
   useEffect(() => {
-    localStorage.setItem(QUICK_MODE_STORAGE_KEY, routineMode);
     const activeId = userProfile?.id || getActiveAccountId();
     if (activeId) {
       setUserData(activeId, 'quick_mode', routineMode);
@@ -326,7 +320,6 @@ export default function App() {
   }, [routineMode, userProfile?.id]);
 
   useEffect(() => {
-    localStorage.setItem(ORDER_STORAGE_KEY, JSON.stringify(customOrder));
     const activeId = userProfile?.id || getActiveAccountId();
     if (activeId) {
       setUserData(activeId, 'routine_order', customOrder);
@@ -355,24 +348,37 @@ export default function App() {
   const baseRoutine = skincareData[mode] || skincareData.sore;
   const currentConfig = modeConfig[mode] || modeConfig.sore;
 
-  // Filter items (Quick vs Full, Exfoliating Toner conditions)
+  // Filter items (Quick vs Full, Periodic / Custom Days conditions)
   const getActiveItems = useCallback(() => {
     // 1. Quick mode vs Full mode item mapping
     let items = routineMode === 'quick'
       ? baseRoutine.full.filter((item) => (baseRoutine.quick || []).includes(item.id) || item.isEssential)
       : [...baseRoutine.full];
 
-    // 2. Strict Exfoliating Toner condition: Rabu & Sabtu malam saja
-    const canUseToner = mode === 'malam' && isExfoliatingDay() && tonerEnabled;
-    if (canUseToner) {
-      const tonerItem = baseRoutine.full.find((i) => i.id === 'm6' || i.id === 'toner' || i.isConditional);
-      if (tonerItem && !items.some((i) => i.id === tonerItem.id)) {
-        items = [...items, tonerItem];
-      }
-    } else {
-      // Di luar jadwal atau toggle OFF: kunci & hilangkan dari checklist aktif
-      items = items.filter((i) => i.id !== 'm6' && i.id !== 'toner' && !i.isConditional);
-    }
+    // Compute logical day (accounting for night owl hours < 05:00)
+    const logicalDate = new Date();
+    if (logicalDate.getHours() < 5) logicalDate.setDate(logicalDate.getDate() - 1);
+    const todayDay = logicalDate.getDay();
+
+    // 2. Custom day filtering for periodic/conditional items
+    items = items.filter((item) => {
+      const isPeriodic =
+        item.scheduleType === 'custom_days' ||
+        (Array.isArray(item.scheduledDays) && item.scheduledDays.length < 7) ||
+        item.isConditional;
+
+      if (!isPeriodic) return true; // Daily items are always included
+
+      const scheduledDays = Array.isArray(item.scheduledDays)
+        ? item.scheduledDays
+        : (item.isConditional ? [3, 6] : []);
+
+      // If today is not in the schedule, exclude this item
+      if (!scheduledDays.includes(todayDay)) return false;
+
+      // If scheduled for today, respect the periodic toggle switch
+      return tonerEnabled;
+    });
 
     return sortBySavedOrder(items, customOrder[mode] || []);
   }, [mode, routineMode, tonerEnabled, customOrder, baseRoutine]);
@@ -406,8 +412,10 @@ export default function App() {
         });
         // Auto-complete the day if not yet marked
         if (!todayCompleted) {
-          const today = getCurrentDateString();
-          localStorage.setItem(COMPLETION_STORAGE_KEY, today);
+          const activeId = userProfile?.id || getActiveAccountId();
+          if (activeId) {
+            setUserTodayCompleted(activeId, true);
+          }
           setTodayCompleted(true);
         }
       }
@@ -432,10 +440,9 @@ export default function App() {
   // ── Complete Day Streak ──
   const handleCompleteDay = () => {
     const today = getCurrentDateString();
-    localStorage.setItem(COMPLETION_STORAGE_KEY, today);
-    setTodayCompleted(true);
     const activeId = userProfile?.id || getActiveAccountId();
     if (activeId) {
+      setUserTodayCompleted(activeId, true);
       const history = getUserData(activeId, 'streak_history', []);
       if (!history.includes(today)) {
         const newHist = [...history, today];
@@ -443,6 +450,7 @@ export default function App() {
         setCurrentStreak(calculateStreak(newHist));
       }
     }
+    setTodayCompleted(true);
     confetti({
       particleCount: 120,
       spread: 90,
@@ -475,6 +483,7 @@ export default function App() {
     setCustomOrder(userOrder);
     const userToner = getUserData(account.id, 'toner_enabled', null);
     if (userToner !== null) setTonerEnabled(userToner);
+    setTodayCompleted(getUserTodayCompleted(account.id));
     setShowAccountModal(false);
     setViewState('dashboard');
     localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
@@ -489,6 +498,11 @@ export default function App() {
   const handleLogout = () => {
     setActiveAccountId(null);
     setUserProfile(null);
+    setCheckedItems({});
+    setCurrentStreak(0);
+    setTodayCompleted(false);
+    setRoutineMode('full');
+    setCustomOrder({});
     setShowAccountModal(false);
     setViewState('landing');
     localStorage.setItem(VIEW_STATE_KEY, 'landing');
@@ -502,7 +516,10 @@ export default function App() {
       clearUserProfile(userProfile?.id);
       setUserProfile(null);
       setCheckedItems({});
+      setCurrentStreak(0);
       setTodayCompleted(false);
+      setRoutineMode('full');
+      setCustomOrder({});
       setShowAccountModal(false);
       setViewState('landing');
       localStorage.setItem(VIEW_STATE_KEY, 'landing');
@@ -526,6 +543,7 @@ export default function App() {
     setCustomOrder(userOrder);
     const userToner = getUserData(updatedProfile.id, 'toner_enabled', null);
     if (userToner !== null) setTonerEnabled(userToner);
+    setTodayCompleted(getUserTodayCompleted(updatedProfile.id));
     setViewState('dashboard');
     localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
   };
@@ -847,17 +865,27 @@ export default function App() {
           {/* 🧴 3D Interactive Skincare Serum Bottle */}
           <ThreeSkincareBottle progress={progress} mode={mode} />
           
-          {/* Toner toggle (show when in malam mode or on exfoliation day) */}
+          {/* Toner / Periodic toggle (show when in malam mode) */}
           {mode === 'malam' && (
             <TonerToggle
               enabled={tonerEnabled}
-              onToggle={() => setTonerEnabled(prev => !prev)}
+              onToggle={() => setTonerEnabled((prev) => !prev)}
+              scheduledProducts={(baseRoutine?.full || []).filter(
+                (i) => i.scheduleType === 'custom_days' || (Array.isArray(i.scheduledDays) && i.scheduledDays.length < 7) || i.isConditional
+              )}
+              onOpenShelf={() => setShowProductShelf(true)}
             />
           )}
 
-          {/* Exfoliation calendar (show when in malam mode) */}
+          {/* Periodic calendar (show when in malam mode) */}
           {mode === 'malam' && (
-            <ExfoliationCalendar tonerEnabled={tonerEnabled} />
+            <ExfoliationCalendar
+              tonerEnabled={tonerEnabled}
+              scheduledProducts={(baseRoutine?.full || []).filter(
+                (i) => i.scheduleType === 'custom_days' || (Array.isArray(i.scheduledDays) && i.scheduledDays.length < 7) || i.isConditional
+              )}
+              onOpenShelf={() => setShowProductShelf(true)}
+            />
           )}
 
           {/* Weather Alert (active in day modes: pagi, siang, sore) */}
@@ -866,7 +894,7 @@ export default function App() {
           <DailyQuote mode={mode} />
 
           {/* 💎 3D Interactive Glow Crystal Orb with Levels & Fortunes */}
-          <ThreeCelebrationOrb streak={currentStreak} mode={mode} />
+          <ThreeCelebrationOrb streak={currentStreak} mode={mode} userId={userProfile?.id} />
           
           {/* Strict Consecutive Streak Counter */}
           <StreakCounter

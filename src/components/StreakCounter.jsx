@@ -12,22 +12,13 @@ export function getStreakHistory(userId = null) {
   if (activeId) {
     return getUserData(activeId, 'streak_history', []);
   }
-  try {
-    return JSON.parse(localStorage.getItem(STREAK_STORAGE_KEY) || localStorage.getItem('ceceyori_streak_history') || '[]');
-  } catch {
-    return [];
-  }
+  return [];
 }
 
 export function saveStreakHistory(streaks, userId = null) {
   const activeId = userId || getActiveAccountId();
   if (activeId) {
     setUserData(activeId, 'streak_history', streaks);
-  }
-  try {
-    localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(streaks));
-  } catch {
-    // Ignore storage quota error
   }
   const user = getCurrentUser();
   if (user?.uid) {

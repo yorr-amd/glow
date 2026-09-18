@@ -188,6 +188,14 @@ export async function createAccount(profileData) {
   setCachedAccounts(filtered);
   setActiveAccountId(id);
 
+  // Initialize isolated user data stores if not already existing
+  if (getUserData(id, 'custom_products') === null) setUserData(id, 'custom_products', {});
+  if (getUserData(id, 'deleted_products') === null) setUserData(id, 'deleted_products', {});
+  if (getUserData(id, 'streak_history') === null) setUserData(id, 'streak_history', []);
+  if (getUserData(id, 'daily_history') === null) setUserData(id, 'daily_history', {});
+  if (getUserData(id, 'checked_items') === null) setUserData(id, 'checked_items', {});
+  if (getUserData(id, 'daily_completion') === null) setUserData(id, 'daily_completion', null);
+
   // 2. Persist in IndexedDB
   const db = await openDB();
   if (db) {
@@ -324,6 +332,50 @@ export function setUserData(userId, key, value) {
   });
 }
 
+/**
+ * Memeriksa apakah akun tertentu telah menyelesaikan rutinitas hari ini
+ */
+export function getUserTodayCompleted(userId) {
+  if (!userId || typeof window === 'undefined') return false;
+  const today = new Date().toISOString().split('T')[0];
+  const val = getUserData(userId, 'daily_completion', null);
+  return val === today;
+}
+
+/**
+ * Menyimpan status selesai harian khusus untuk akun tertentu
+ */
+export function setUserTodayCompleted(userId, isCompleted = true) {
+  if (!userId || typeof window === 'undefined') return;
+  const today = new Date().toISOString().split('T')[0];
+  setUserData(userId, 'daily_completion', isCompleted ? today : null);
+}
+
+/**
+ * Membersihkan seluruh kunci sisa legacy ceceyori_* dari localStorage
+ * agar tidak pernah mengkontaminasi akun baru atau instalasi fresh.
+ */
+export function cleanLegacyData() {
+  if (typeof window === 'undefined') return;
+  const legacyKeys = [
+    'ceceyori_user_profile',
+    'ceceyori_streak_history',
+    'ceceyori_daily_history',
+    'ceceyori_custom_products',
+    'ceceyori_deleted_products',
+    'ceceyori_checked_items',
+    'ceceyori_glow_vibes_count',
+    'ceceyori_notified_today',
+  ];
+  for (const k of legacyKeys) {
+    try {
+      localStorage.removeItem(k);
+    } catch {
+      // Ignore removal error
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────
 // 4. LEGACY DATA MIGRATION (Preserve existing user data)
 // ─────────────────────────────────────────────────────────
@@ -337,6 +389,7 @@ export async function migrateLegacyDataIfNeeded() {
 
   const MIGRATION_FLAG = 'glow_v12_migration_done';
   if (localStorage.getItem(MIGRATION_FLAG)) {
+    cleanLegacyData();
     return null;
   }
 
@@ -419,10 +472,12 @@ export async function migrateLegacyDataIfNeeded() {
 
       console.log('🌸 Legacy user data successfully migrated to account:', userName);
       localStorage.setItem(MIGRATION_FLAG, 'true');
+      cleanLegacyData();
       return migratedAccount;
     }
 
     localStorage.setItem(MIGRATION_FLAG, 'true');
+    cleanLegacyData();
   } catch (err) {
     console.error('Legacy data migration failed:', err);
   }

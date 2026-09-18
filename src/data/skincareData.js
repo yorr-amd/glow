@@ -91,11 +91,7 @@ export const getCustomProducts = (userId = null) => {
   if (activeId) {
     return getUserData(activeId, 'custom_products', {});
   }
-  try {
-    return JSON.parse(localStorage.getItem(CUSTOM_PRODUCTS_KEY) || '{}');
-  } catch {
-    return {};
-  }
+  return {};
 };
 
 export const getDeletedProducts = (userId = null) => {
@@ -103,11 +99,7 @@ export const getDeletedProducts = (userId = null) => {
   if (activeId) {
     return getUserData(activeId, 'deleted_products', {});
   }
-  try {
-    return JSON.parse(localStorage.getItem(DELETED_PRODUCTS_KEY) || '{}');
-  } catch {
-    return {};
-  }
+  return {};
 };
 
 export const saveCustomProducts = (products, userId = null) => {
@@ -115,22 +107,12 @@ export const saveCustomProducts = (products, userId = null) => {
   if (activeId) {
     setUserData(activeId, 'custom_products', products);
   }
-  try {
-    localStorage.setItem(CUSTOM_PRODUCTS_KEY, JSON.stringify(products));
-  } catch {
-    // Ignore storage quota error
-  }
 };
 
 export const saveDeletedProducts = (deleted, userId = null) => {
   const activeId = userId || getActiveAccountId();
   if (activeId) {
     setUserData(activeId, 'deleted_products', deleted);
-  }
-  try {
-    localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(deleted));
-  } catch {
-    // Ignore storage quota error
   }
 };
 

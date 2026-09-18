@@ -28,22 +28,13 @@ export const getDailyHistory = (userId = null) => {
   if (activeId) {
     return getUserData(activeId, 'daily_history', {});
   }
-  try {
-    return JSON.parse(localStorage.getItem(DAILY_HISTORY_KEY) || localStorage.getItem('ceceyori_daily_history') || '{}');
-  } catch {
-    return {};
-  }
+  return {};
 };
 
 export const saveDailyHistory = (history, userId = null) => {
   const activeId = userId || getActiveAccountId();
   if (activeId) {
     setUserData(activeId, 'daily_history', history);
-  }
-  try {
-    localStorage.setItem(DAILY_HISTORY_KEY, JSON.stringify(history));
-  } catch {
-    // Ignore storage quota error
   }
   const user = getCurrentUser();
   if (user?.uid) {

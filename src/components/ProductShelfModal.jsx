@@ -15,7 +15,10 @@ import {
 import {
   categoryConfig,
   getMergedSkincareData,
+  getCustomProducts,
+  getDeletedProducts,
   saveCustomProducts,
+  saveDeletedProducts,
   resetPAOTimer,
   modeConfig,
   deleteProductFromMode,
@@ -46,6 +49,8 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
     category: 'face',
     pao: '12M',
     isEssential: true,
+    scheduleType: 'daily',
+    scheduledDays: [1, 2, 3, 4, 5, 6, 0],
   });
 
   useEffect(() => {
@@ -68,6 +73,13 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
 
     if (!customProducts[activeModeTab]) customProducts[activeModeTab] = [];
 
+    const productPayload = {
+      ...formData,
+      scheduleType: formData.scheduleType || 'daily',
+      scheduledDays: formData.scheduleType === 'custom_days' ? (formData.scheduledDays || []) : [1, 2, 3, 4, 5, 6, 0],
+      isConditional: formData.scheduleType === 'custom_days',
+    };
+
     if (editingId) {
       if (deletedProducts[activeModeTab]) {
         deletedProducts[activeModeTab] = deletedProducts[activeModeTab].filter((id) => id !== editingId);
@@ -76,13 +88,13 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
 
       const index = customProducts[activeModeTab].findIndex((p) => p.id === editingId);
       if (index >= 0) {
-        customProducts[activeModeTab][index] = { ...formData, id: editingId };
+        customProducts[activeModeTab][index] = { ...productPayload, id: editingId };
       } else {
-        customProducts[activeModeTab].push({ ...formData, id: editingId });
+        customProducts[activeModeTab].push({ ...productPayload, id: editingId });
       }
     } else {
       const newId = `custom_${activeModeTab}_${Date.now()}`;
-      customProducts[activeModeTab].push({ ...formData, id: newId, isCustom: true });
+      customProducts[activeModeTab].push({ ...productPayload, id: newId, isCustom: true });
     }
 
     saveCustomProducts(customProducts, userId);
@@ -95,12 +107,17 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
 
   const handleEdit = (product) => {
     setEditingId(product.id);
+    const hasCustomDays = Array.isArray(product.scheduledDays) && product.scheduledDays.length > 0 && product.scheduledDays.length < 7;
     setFormData({
       name: product.name,
-      desc: product.desc,
-      category: product.category,
+      desc: product.desc || '',
+      category: product.category || 'face',
       pao: product.pao || '12M',
       isEssential: product.isEssential !== false,
+      scheduleType: product.scheduleType || (hasCustomDays || product.isConditional ? 'custom_days' : 'daily'),
+      scheduledDays: Array.isArray(product.scheduledDays) && product.scheduledDays.length > 0
+        ? product.scheduledDays
+        : (product.isConditional ? [3, 6] : [1, 2, 3, 4, 5, 6, 0]),
     });
     setShowAddForm(true);
   };
@@ -139,9 +156,55 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
     onUpdate?.();
   };
 
+const WEEKDAYS = [
+  { index: 1, labelId: 'Sen', labelEn: 'Mon' },
+  { index: 2, labelId: 'Sel', labelEn: 'Tue' },
+  { index: 3, labelId: 'Rab', labelEn: 'Wed' },
+  { index: 4, labelId: 'Kam', labelEn: 'Thu' },
+  { index: 5, labelId: 'Jum', labelEn: 'Fri' },
+  { index: 6, labelId: 'Sab', labelEn: 'Sat' },
+  { index: 0, labelId: 'Min', labelEn: 'Sun' },
+];
+
+  const formatScheduleBadge = (product) => {
+    const isCustom = product.scheduleType === 'custom_days' || (Array.isArray(product.scheduledDays) && product.scheduledDays.length < 7) || product.isConditional;
+    if (!isCustom) {
+      return {
+        text: isEn ? 'Everyday' : 'Setiap Hari',
+        icon: '✨',
+        classes: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      };
+    }
+    const days = Array.isArray(product.scheduledDays) ? product.scheduledDays : (product.isConditional ? [3, 6] : []);
+    if (days.length === 0) {
+      return {
+        text: isEn ? 'No days' : 'Belum ada hari',
+        icon: '⚠️',
+        classes: 'bg-amber-50 text-amber-700 border-amber-200',
+      };
+    }
+    const dayLabels = WEEKDAYS
+      .filter((d) => days.includes(d.index))
+      .map((d) => (isEn ? d.labelEn : d.labelId))
+      .join(', ');
+    return {
+      text: dayLabels,
+      icon: '📅',
+      classes: 'bg-rose-50 text-rose-700 border-rose-200',
+    };
+  };
+
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ name: '', desc: '', category: 'face', pao: '12M', isEssential: true });
+    setFormData({
+      name: '',
+      desc: '',
+      category: 'face',
+      pao: '12M',
+      isEssential: true,
+      scheduleType: 'daily',
+      scheduledDays: [1, 2, 3, 4, 5, 6, 0],
+    });
     setShowAddForm(false);
   };
 
@@ -270,6 +333,87 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
                 </div>
               </div>
 
+              {/* Schedule Type Selection */}
+              <div className="space-y-2 pt-2 border-t border-pink-200/60">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  {isEn ? 'Usage Schedule' : 'Jadwal Pemakaian'}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, scheduleType: 'daily' })}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      formData.scheduleType === 'daily'
+                        ? 'bg-pink-100/90 text-pink-700 border-pink-300 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>✨</span>
+                    <span>{isEn ? 'Every Day (Daily)' : 'Setiap Hari (Rutin)'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const defaultDays = (formData.scheduledDays && formData.scheduledDays.length < 7 && formData.scheduledDays.length > 0)
+                        ? formData.scheduledDays
+                        : [3, 6];
+                      setFormData({ ...formData, scheduleType: 'custom_days', scheduledDays: defaultDays });
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      formData.scheduleType === 'custom_days'
+                        ? 'bg-rose-100/90 text-rose-700 border-rose-300 shadow-xs'
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>📅</span>
+                    <span>{isEn ? 'Specific Days (Periodic)' : 'Hari Tertentu (Berkala)'}</span>
+                  </button>
+                </div>
+
+                {formData.scheduleType === 'custom_days' && (
+                  <div className="p-3 bg-white rounded-xl border border-rose-200/80 space-y-2 animate-scale-in">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-slate-600">
+                        {isEn ? 'Select active days (e.g. exfoliation, mask):' : 'Pilih hari aktif (cth. eksfoliasi, masker):'}
+                      </span>
+                      <span className="text-[10px] font-bold text-rose-600">
+                        {(formData.scheduledDays || []).length} {isEn ? 'days' : 'hari'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-7 gap-1">
+                      {WEEKDAYS.map((d) => {
+                        const isSelected = (formData.scheduledDays || []).includes(d.index);
+                        return (
+                          <button
+                            key={d.index}
+                            type="button"
+                            onClick={() => {
+                              const cur = formData.scheduledDays || [];
+                              const updated = cur.includes(d.index)
+                                ? cur.filter((i) => i !== d.index)
+                                : [...cur, d.index];
+                              setFormData({ ...formData, scheduledDays: updated });
+                            }}
+                            className={`py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#D06885] text-white shadow-xs'
+                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                            }`}
+                          >
+                            {isEn ? d.labelEn : d.labelId}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {(formData.scheduledDays || []).length === 0 && (
+                      <p className="text-[10px] text-rose-500 font-semibold">
+                        ⚠️ {isEn ? 'Please select at least 1 day' : 'Pilih minimal 1 hari aktif'}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
@@ -325,6 +469,7 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {products.map((product) => {
                     const displayDesc = isEn && product.desc_en ? product.desc_en : product.desc;
+                    const schedBadge = formatScheduleBadge(product);
                     return (
                       <div
                         key={product.id}
@@ -340,9 +485,13 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 leading-relaxed">{displayDesc}</p>
-                          <div className="flex items-center gap-2 pt-1">
-                            <span className="text-[9px] uppercase font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            <span className="text-[9px] uppercase font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full border border-pink-100">
                               {t(`shelfModal.categories.${product.category || 'face'}`) || product.category || 'face'}
+                            </span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${schedBadge.classes}`}>
+                              <span>{schedBadge.icon}</span>
+                              <span>{schedBadge.text}</span>
                             </span>
                             <span className="text-[9px] text-slate-400 font-mono">
                               PAO: {product.pao || '12M'}
@@ -359,7 +508,7 @@ export default function ProductShelfModal({ isOpen, onClose, onUpdate, routineMo
                             <Edit2 size={14} />
                           </button>
                           <button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => handleDelete(product)}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             title={t('shelfModal.delete')}
                           >

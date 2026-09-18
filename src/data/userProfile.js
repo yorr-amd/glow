@@ -26,20 +26,17 @@ export const DEFAULT_USER_PROFILE = {
 export function getSavedUserProfile(targetUserId = null) {
   try {
     const activeId = targetUserId || getActiveAccountId();
+    const accounts = getCachedAccounts();
     if (activeId) {
-      const accounts = getCachedAccounts();
       const found = accounts.find((acc) => acc.id === activeId);
       if (found && found.name && found.name.trim()) {
         return { ...DEFAULT_USER_PROFILE, ...found, isRegistered: true };
       }
-    }
-
-    // Fallback legacy local storage check
-    const saved = localStorage.getItem('ceceyori_user_profile') || localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && typeof parsed === 'object' && parsed.name && parsed.name.trim()) {
-        return { ...DEFAULT_USER_PROFILE, ...parsed, isRegistered: true };
+    } else if (accounts.length > 0) {
+      const first = accounts.find((acc) => acc.name && acc.name.trim());
+      if (first) {
+        setActiveAccountId(first.id);
+        return { ...DEFAULT_USER_PROFILE, ...first, isRegistered: true };
       }
     }
   } catch (e) {
