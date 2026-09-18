@@ -6,7 +6,7 @@ export const translations = {
   id: {
     appTitle: "Glow ✦ Skincare Companion",
     brandName: "Glow",
-    version: "v1.1.8",
+    version: "v1.1.9",
     homeTooltip: "Kembali ke Beranda",
     profileTooltip: "Profil & Akun Pengguna",
     modes: {
@@ -348,7 +348,7 @@ export const translations = {
   en: {
     appTitle: "Glow ✦ Skincare Companion",
     brandName: "Glow",
-    version: "v1.1.8",
+    version: "v1.1.9",
     homeTooltip: "Back to Home",
     profileTooltip: "User Profile & Account",
     modes: {
