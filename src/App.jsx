@@ -16,7 +16,7 @@ import ThreeAtmosphereCanvas from './components/ThreeAtmosphereCanvas';
 import ThreeSkincareBottle from './components/ThreeSkincareBottle';
 import ThreeCelebrationOrb from './components/ThreeCelebrationOrb';
 import LandingPage from './components/LandingPage';
-import AuthModal from './components/AuthModal';
+import OnboardingWizard from './components/OnboardingWizard';
 import AccountModal from './components/AccountModal';
 import AutoUpdateModal from './components/AutoUpdateModal';
 import { checkForAppUpdates } from './utils/autoUpdateService';
@@ -144,10 +144,9 @@ export default function App() {
   // ── State: User Profile & Modals ──
   const [userProfile, setUserProfile] = useState(() => getSavedUserProfile());
   const [showAccountModal, setShowAccountModal] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [isAddingAccount, setIsAddingAccount] = useState(false);
 
-  // ── State: Navigation View ('landing' | 'auth' | 'dashboard') ──
+  // ── State: Navigation View ('landing' | 'onboarding' | 'dashboard') ──
   const [viewState, setViewState] = useState(() => {
     const saved = getSavedUserProfile();
     if (!saved || !saved.isRegistered || !saved.name) {
@@ -462,7 +461,8 @@ export default function App() {
   // ── Handle Navigation & Multi-Account ──
   const handleEnterDashboard = () => {
     if (!userProfile || !userProfile.isRegistered || !userProfile.name) {
-      setShowAuthModal(true);
+      setIsAddingAccount(false);
+      setViewState('onboarding');
     } else {
       setViewState('dashboard');
       localStorage.setItem(VIEW_STATE_KEY, 'dashboard');
@@ -492,7 +492,7 @@ export default function App() {
   const handleAddNewAccount = () => {
     setShowAccountModal(false);
     setIsAddingAccount(true);
-    setShowAuthModal(true);
+    setViewState('onboarding');
   };
 
   const handleLogout = () => {
@@ -560,19 +560,29 @@ export default function App() {
           userProfile={userProfile}
           onEnterApp={handleEnterDashboard}
         />
-        <AuthModal
-          isOpen={showAuthModal}
+      </div>
+    );
+  }
+
+  // ══════════════════════════════════════════════
+  // RENDER: CARDLESS ONBOARDING WIZARD
+  // ══════════════════════════════════════════════
+  if (viewState === 'onboarding') {
+    return (
+      <div className="min-h-screen bg-[#FDF5F7] text-[#3D1F2A] flex flex-col selection:bg-pink-200 selection:text-pink-900">
+        <TitleBar />
+        <OnboardingWizard
           userProfile={isAddingAccount ? null : userProfile}
           isNewAccount={isAddingAccount || !userProfile?.isRegistered}
-          mode={mode}
-          onLoginSuccess={handleLoginSuccess}
-          onBackToLanding={() => {
-            setIsAddingAccount(false);
-            setShowAuthModal(false);
+          onComplete={(savedProfile, extra) => {
+            handleLoginSuccess(savedProfile);
+            if (extra?.routineMode) {
+              setRoutineMode(extra.routineMode);
+            }
           }}
-          onClose={() => {
+          onCancel={() => {
             setIsAddingAccount(false);
-            setShowAuthModal(false);
+            setViewState(userProfile?.isRegistered ? 'dashboard' : 'landing');
           }}
         />
       </div>
@@ -985,22 +995,11 @@ export default function App() {
         onResetAllData={handleResetAllData}
         onOpenOnboarding={() => {
           setShowAccountModal(false);
-          setShowAuthModal(true);
+          setIsAddingAccount(false);
+          setViewState('onboarding');
         }}
         onSwitchAccount={handleSwitchAccount}
         onAddNewAccount={handleAddNewAccount}
-      />
-
-      {/* Onboarding Setup Wizard Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        userProfile={isAddingAccount ? null : userProfile}
-        isNewAccount={isAddingAccount}
-        onLoginSuccess={handleLoginSuccess}
-        onClose={() => {
-          setIsAddingAccount(false);
-          setShowAuthModal(false);
-        }}
       />
 
       {/* Auto Update Notification Modal */}
