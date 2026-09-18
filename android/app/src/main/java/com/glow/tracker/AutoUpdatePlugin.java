@@ -61,12 +61,12 @@ public class AutoUpdatePlugin extends Plugin {
             request.setMimeType("application/vnd.android.package-archive");
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
 
-            // Simpan di direktori eksternal unduhan aplikasi
+            // Simpan di direktori eksternal unduhan aplikasi dengan metode standar Android
             File destinationFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
             if (destinationFile.exists()) {
                 destinationFile.delete();
             }
-            request.setDestinationUri(Uri.fromFile(destinationFile));
+            request.setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, fileName);
 
             final DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
             if (downloadManager == null) {
@@ -89,7 +89,24 @@ public class AutoUpdatePlugin extends Plugin {
                 public void onReceive(Context ctx, Intent intent) {
                     long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                     if (id == activeDownloadId) {
-                        launchApkInstaller(ctx, destinationFile);
+                        // Periksa apakah unduhan benar-benar berhasil sebelum meluncurkan installer
+                        DownloadManager.Query query = new DownloadManager.Query();
+                        query.setFilterById(activeDownloadId);
+                        android.database.Cursor cursor = downloadManager.query(query);
+                        if (cursor != null && cursor.moveToFirst()) {
+                            int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                            int status = statusIndex >= 0 ? cursor.getInt(statusIndex) : -1;
+                            if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                                launchApkInstaller(ctx, destinationFile);
+                            } else {
+                                int reasonIndex = cursor.getColumnIndex(DownloadManager.COLUMN_REASON);
+                                int reason = reasonIndex >= 0 ? cursor.getInt(reasonIndex) : -1;
+                                Toast.makeText(ctx, "Gagal mengunduh pembaruan (Status: " + status + ", Kode: " + reason + ")", Toast.LENGTH_LONG).show();
+                            }
+                            cursor.close();
+                        } else {
+                            launchApkInstaller(ctx, destinationFile);
+                        }
                     }
                 }
             };
@@ -116,8 +133,8 @@ public class AutoUpdatePlugin extends Plugin {
 
     private void launchApkInstaller(Context context, File apkFile) {
         try {
-            if (!apkFile.exists()) {
-                Toast.makeText(context, "File pembaruan tidak ditemukan", Toast.LENGTH_SHORT).show();
+            if (!apkFile.exists() || apkFile.length() == 0) {
+                Toast.makeText(context, "File pembaruan tidak ditemukan atau rusak", Toast.LENGTH_SHORT).show();
                 return;
             }
 

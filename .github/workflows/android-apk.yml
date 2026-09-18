@@ -47,16 +47,41 @@ jobs:
       - name: 🔧 Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: 🚀 Build Debug APK
+      - name: 🔑 Setup Release Keystore
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/glow-release.keystore
+          cat <<EOF > android/keystore.properties
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=glow-release.keystore
+          EOF
+          echo "HAS_RELEASE_KEYSTORE=true" >> $GITHUB_ENV
+
+      - name: 🚀 Build APK (Signed Release or Debug Fallback)
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon
+          if [ "$HAS_RELEASE_KEYSTORE" = "true" ] && [ -f "keystore.properties" ]; then
+            echo "Building Signed Release APK..."
+            ./gradlew assembleRelease --no-daemon
+            echo "APK_PATH=android/app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
+          else
+            echo "Building Debug APK (keystore not available)..."
+            ./gradlew assembleDebug --no-daemon
+            echo "APK_PATH=android/app/build/outputs/apk/debug/app-debug.apk" >> $GITHUB_ENV
+          fi
 
       - name: 📤 Upload APK Artifact to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: Glow-Android-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ env.APK_PATH }}
           retention-days: 14
 
       - name: 🏷️ Rename APK for Release
@@ -64,9 +89,9 @@ jobs:
         run: |
           VERSION="${{ github.ref_name }}"
           if [ "${{ github.ref_type }}" != "tag" ]; then
-            VERSION="v1.1.1"
+            VERSION="v1.1.8"
           fi
-          cp android/app/build/outputs/apk/debug/app-debug.apk "./Glow-${VERSION}.apk"
+          cp "${{ env.APK_PATH }}" "./Glow-${VERSION}.apk"
           echo "APK_FILE=./Glow-${VERSION}.apk" >> $GITHUB_ENV
 
       - name: 🏷️ Attach APK to Release
