@@ -48,21 +48,25 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: 🔑 Setup Release Keystore
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/glow-release.keystore
-          cat <<EOF > android/keystore.properties
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/glow-release.keystore
+            cat <<EOF > android/keystore.properties
           storePassword=$ANDROID_KEYSTORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD
           keyAlias=$ANDROID_KEY_ALIAS
           storeFile=glow-release.keystore
           EOF
-          echo "HAS_RELEASE_KEYSTORE=true" >> $GITHUB_ENV
+            echo "HAS_RELEASE_KEYSTORE=true" >> $GITHUB_ENV
+            echo "Keystore setup successfully for signed release!"
+          else
+            echo "No keystore secret found, will build debug APK."
+          fi
 
       - name: 🚀 Build APK (Signed Release or Debug Fallback)
         run: |
