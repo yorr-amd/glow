@@ -125,3 +125,44 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Glow ✦ Skincare Companion ${{ github.ref_name }}'
           args: --bundles appimage,deb,rpm
+
+      - name: 📦 Update RPM Repository on gh-pages
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sudo apt-get update && sudo apt-get install -y createrepo-c
+          
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          REPO_DIR=$(mktemp -d)
+          git clone --branch gh-pages "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "$REPO_DIR"
+          
+          mkdir -p "$REPO_DIR/rpm"
+          
+          find src-tauri/target/release/bundle/rpm -name "*.rpm" -exec cp {} "$REPO_DIR/rpm/" \;
+          
+          cd "$REPO_DIR"
+          createrepo_c --verbose --update rpm/
+          
+          cat << 'EOF' > rpm/glow-tracker.repo
+[glow-tracker]
+name=Glow ✦ Skincare Companion Repository
+baseurl=https://yorr-amd.github.io/glow/rpm/
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+type=rpm-md
+EOF
+
+          cp rpm/glow-tracker.repo ./glow-tracker.repo
+          touch .nojekyll
+          
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes in RPM repository"
+          else
+            git commit -m "chore(rpm-repo): update RPM metadata for ${{ github.ref_name }} [skip ci]"
+            git push origin gh-pages
+          fi
