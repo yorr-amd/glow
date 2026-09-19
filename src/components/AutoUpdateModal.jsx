@@ -16,11 +16,24 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
 
   const platform = updateInfo.platform || getAppPlatform();
   const isDesktop = platform === 'desktop';
+  const isLinux = updateInfo.isLinux || (typeof navigator !== 'undefined' && /linux|x11/i.test(navigator.userAgent) && !/android/i.test(navigator.userAgent));
+  const isWindows = isDesktop && !isLinux;
 
   const handleStartUpdate = async () => {
     try {
       setInstallStatus('downloading');
       setErrorMessage('');
+
+      if (isLinux) {
+        setInstallStatus('started');
+        setProgressText(
+          isEn
+            ? 'Run "sudo dnf upgrade glow-tracker" in terminal or check KDE Discover to update!'
+            : 'Jalankan "sudo dnf upgrade glow-tracker" di terminal atau buka Discover untuk memperbarui!'
+        );
+        return;
+      }
+
       setProgressText(isDesktop ? 'Mengunduh pembaruan di latar belakang...' : 'Memulai unduhan...');
 
       const result = await triggerAutoInstall(updateInfo, (prog) => {
@@ -73,7 +86,9 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-[#D06885]">
                 {isDesktop
-                  ? (isEn ? 'Desktop Update Available' : 'Pembaruan Desktop Tersedia')
+                  ? (isLinux
+                      ? (isEn ? 'Linux Update Available' : 'Pembaruan Linux Tersedia')
+                      : (isEn ? 'Desktop Update Available' : 'Pembaruan Desktop Tersedia'))
                   : (isEn ? 'New Update Available' : 'Pembaruan Baru Tersedia')}
               </span>
             </div>
@@ -103,13 +118,13 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
             <p className="font-mono text-xs font-extrabold text-[#9B4B62]">v{updateInfo.latestVersion}</p>
           </div>
 
-          {(isDesktop ? (updateInfo.winSize || updateInfo.apkSize) : updateInfo.apkSize) && (
+          {(isDesktop ? (isLinux ? (updateInfo.linuxSize || updateInfo.winSize || updateInfo.apkSize) : (updateInfo.winSize || updateInfo.apkSize)) : updateInfo.apkSize) && (
             <div className="border-l border-pink-200/80 pl-3 text-right">
               <p className="text-[10px] uppercase font-bold text-slate-400">
-                {isDesktop ? (isEn ? 'Installer' : 'Windows') : 'APK Size'}
+                {isDesktop ? (isLinux ? 'RPM / Linux' : (isEn ? 'Installer' : 'Windows')) : 'APK Size'}
               </p>
               <p className="font-mono text-xs font-semibold text-slate-700">
-                {formatFileSize(isDesktop ? (updateInfo.winSize || updateInfo.apkSize) : updateInfo.apkSize)}
+                {formatFileSize(isDesktop ? (isLinux ? (updateInfo.linuxSize || updateInfo.winSize || updateInfo.apkSize) : (updateInfo.winSize || updateInfo.apkSize)) : updateInfo.apkSize)}
               </p>
             </div>
           )}
@@ -191,7 +206,9 @@ export default function AutoUpdateModal({ isOpen, onClose, updateInfo }) {
               <Download size={16} />
               <span>
                 {isDesktop
-                  ? (isEn ? 'Update Now (Windows)' : 'Perbarui Sekarang (Windows)')
+                  ? (isLinux
+                      ? (isEn ? 'Update via Discover / DNF' : 'Perbarui via Discover / DNF')
+                      : (isEn ? 'Update Now (Windows)' : 'Perbarui Sekarang (Windows)'))
                   : (isEn ? 'Update Now (1-Tap Auto Update)' : 'Perbarui Otomatis Sekarang (1-Klik)')}
               </span>
             </button>
