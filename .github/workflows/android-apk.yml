@@ -93,7 +93,7 @@ jobs:
         run: |
           VERSION="${{ github.ref_name }}"
           if [ "${{ github.ref_type }}" != "tag" ]; then
-            VERSION="v1.2.0"
+            VERSION="v1.2.1"
           fi
           cp "${{ env.APK_PATH }}" "./Glow-${VERSION}.apk"
           echo "APK_FILE=./Glow-${VERSION}.apk" >> $GITHUB_ENV
