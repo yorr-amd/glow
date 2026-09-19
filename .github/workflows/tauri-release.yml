@@ -146,15 +146,13 @@ jobs:
           cd "$REPO_DIR"
           createrepo_c --verbose --update rpm/
           
-          cat << 'EOF' > rpm/glow-tracker.repo
-[glow-tracker]
-name=Glow ✦ Skincare Companion Repository
-baseurl=https://yorr-amd.github.io/glow/rpm/
-enabled=1
-gpgcheck=0
-repo_gpgcheck=0
-type=rpm-md
-EOF
+          echo "[glow-tracker]" > rpm/glow-tracker.repo
+          echo "name=Glow ✦ Skincare Companion Repository" >> rpm/glow-tracker.repo
+          echo "baseurl=https://yorr-amd.github.io/glow/rpm/" >> rpm/glow-tracker.repo
+          echo "enabled=1" >> rpm/glow-tracker.repo
+          echo "gpgcheck=0" >> rpm/glow-tracker.repo
+          echo "repo_gpgcheck=0" >> rpm/glow-tracker.repo
+          echo "type=rpm-md" >> rpm/glow-tracker.repo
 
           cp rpm/glow-tracker.repo ./glow-tracker.repo
           touch .nojekyll
