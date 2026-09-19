@@ -1,0 +1,120 @@
+name: Publish RPM Repository
+
+on:
+  release:
+    types: [published]
+  workflow_run:
+    workflows: ["Tauri Release"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to ingest (e.g. v1.1.9)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  publish-rpm-repo:
+    name: 📦 Build & Publish DNF / RPM Repo
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: 📥 Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+
+      - name: 📦 Install RPM tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y createrepo-c curl wget
+
+      - name: 📥 Download RPMs from GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p rpm
+          echo "Fetching RPM release assets from repository..."
+          gh release list --limit 15 --json tagName --jq '.[].tagName' | while read -r tag; do
+            echo "Checking tag: $tag"
+            gh release download "$tag" --pattern "*rpm" --dir rpm/ --clobber || true
+          done
+          echo "Current RPM files in repository:"
+          ls -lh rpm/
+
+      - name: ⚙️ Generate YUM / DNF Metadata with createrepo_c
+        run: |
+          createrepo_c --verbose --update rpm/
+
+      - name: 📝 Update .repo file & Web landing page
+        run: |
+          cat << 'EOF' > rpm/glow-tracker.repo
+[glow-tracker]
+name=Glow ✦ Skincare Companion Repository
+baseurl=https://yorr-amd.github.io/glow/rpm/
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+type=rpm-md
+EOF
+
+          cp rpm/glow-tracker.repo ./glow-tracker.repo
+          touch .nojekyll
+
+          cat << 'EOF' > index.html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glow ✦ Skincare Companion Linux Repository</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #FDF5F7; color: #3D1F2A; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+    .card { max-width: 650px; background: white; border-radius: 24px; padding: 36px; box-shadow: 0 4px 20px rgba(208, 104, 133, 0.12); border: 1px solid rgba(208, 104, 133, 0.2); }
+    h1 { font-family: Georgia, serif; color: #3D1F2A; margin-top: 0; }
+    pre { background: #2B1820; color: #FCE7F3; padding: 14px 18px; border-radius: 12px; overflow-x: auto; font-size: 13px; }
+    .badge { display: inline-block; background: #FCE7F3; color: #D06885; padding: 4px 12px; border-radius: 999px; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 12px; }
+    a { color: #D06885; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">Fedora / RHEL / DNF Repository</span>
+    <h1>🌸 Glow ✦ Skincare Companion</h1>
+    <p>Repositori resmi Linux untuk instalasi dan pembaruan otomatis (1-klik di Discover & DNF).</p>
+    
+    <h3>1. Tambahkan Repositori ke Sistem Fedora / RHEL:</h3>
+    <pre>sudo curl -fsSL https://yorr-amd.github.io/glow/glow-tracker.repo -o /etc/yum.repos.d/glow-tracker.repo</pre>
+    
+    <h3>2. Pasang Aplikasi:</h3>
+    <pre>sudo dnf install glow-tracker</pre>
+    
+    <h3>3. Perbarui Kapan Saja:</h3>
+    <pre>sudo dnf upgrade glow-tracker</pre>
+    
+    <p style="font-size: 13px; color: #718096; margin-top: 24px;">
+      💡 <b>KDE Discover & GNOME Software:</b> Glow akan otomatis terdaftar dan dapat diperbarui langsung lewat aplikasi software center favoritmu!
+    </p>
+    <p style="font-size: 12px; color: #A0AEC0;">
+      Kembali ke <a href="https://github.com/yorr-amd/glow">GitHub Repository</a>
+    </p>
+  </div>
+</body>
+</html>
+EOF
+
+      - name: 🚀 Commit and Push to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes in repository metadata"
+          else
+            git commit -m "chore(rpm-repo): update YUM/DNF repository metadata [skip ci]"
+            git push origin gh-pages
+          fi
