@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glow ✦ Skincare Companion Linux Repository</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #FDF5F7; color: #3D1F2A; margin: 0; padding: 40px 20px; display: flex; justify-content: center; }
+    .card { max-width: 650px; background: white; border-radius: 24px; padding: 36px; box-shadow: 0 4px 20px rgba(208, 104, 133, 0.12); border: 1px solid rgba(208, 104, 133, 0.2); }
+    h1 { font-family: Georgia, serif; color: #3D1F2A; margin-top: 0; }
+    pre { background: #2B1820; color: #FCE7F3; padding: 14px 18px; border-radius: 12px; overflow-x: auto; font-size: 13px; }
+    .badge { display: inline-block; background: #FCE7F3; color: #D06885; padding: 4px 12px; border-radius: 999px; font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <span class="badge">Fedora / RHEL / DNF Repository</span>
+    <h1>🌸 Glow ✦ Skincare Companion</h1>
+    <p>Repositori resmi Linux untuk instalasi dan pembaruan otomatis (1-klik di Discover & DNF).</p>
+    <h3>1. Tambahkan Repositori ke Sistem Fedora / RHEL:</h3>
+    <pre>sudo curl -fsSL https://yorr-amd.github.io/glow/glow-tracker.repo -o /etc/yum.repos.d/glow-tracker.repo</pre>
+    <h3>2. Pasang Aplikasi:</h3>
+    <pre>sudo dnf install glow-tracker</pre>
+    <h3>3. Perbarui Kapan Saja:</h3>
+    <pre>sudo dnf upgrade glow-tracker</pre>
+    <p style="font-size: 12px; color: #718096; margin-top: 24px;">Atau cukup buka <b>KDE Discover</b> / <b>GNOME Software</b>, Glow akan otomatis terdaftar di tab Updates!</p>
+  </div>
+</body>
+</html>
