@@ -1,7 +1,12 @@
 name: Update RPM Repo
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-index'
+        required: false
+        default: 'true'
 
 permissions:
   contents: write
